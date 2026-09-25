@@ -24,6 +24,7 @@ export const Markers = {
     if (!m) {
       m = make();
       m.el.classList.add('mk');
+      m.el.style.display = 'none'; // shown once projected
       this.layer.appendChild(m.el);
       this.items.set(key, m);
     }
@@ -58,18 +59,18 @@ export const Markers = {
         if (g >= Math.min(20, cap * 0.1)) {
           const full = g >= cap - 0.5;
           const m = this._ensure(`g:${b.id}`, () => {
-            const el = h('button.bubble.pe', { onclick: () => this.actions.collectHabitat(b.id, el) }, icon('gold'));
-            return { el, pos: new THREE.Vector3() };
+            const btn = h('button.bubble.pe', { onclick: () => this.actions.collectHabitat(b.id, btn) }, icon('gold'));
+            return { el: h('div', null, btn), btn, pos: new THREE.Vector3() };
           });
-          m.el.classList.toggle('gold-full', full);
+          m.btn.classList.toggle('gold-full', full);
           m.pos.copy(pos).setY(topY);
         }
       }
       if (b.type === 'farm' && b.crop) {
         if (cropReady(b, now)) {
           const m = this._ensure(`f:${b.id}`, () => {
-            const el = h('button.bubble.pe', { onclick: () => this.actions.harvest(b.id, el) }, icon(`crop_${b.crop}`));
-            return { el, pos: new THREE.Vector3() };
+            const btn = h('button.bubble.pe', { onclick: () => this.actions.harvest(b.id, btn) }, icon(`crop_${b.crop}`));
+            return { el: h('div', null, btn), btn, pos: new THREE.Vector3() };
           });
           m.pos.copy(pos).setY(1.3);
         } else {
@@ -86,8 +87,8 @@ export const Markers = {
       }
       if (b.type === 'hatchery' && G.state.hatchery.some((e) => eggReady(e))) {
         const m = this._ensure(`h:${b.id}`, () => {
-          const el = h('button.bubble.pe', { onclick: () => this.actions.openHatchery() }, icon('egg'));
-          return { el, pos: new THREE.Vector3() };
+          const btn = h('button.bubble.pe', { onclick: () => this.actions.openHatchery() }, icon('egg'));
+          return { el: h('div', null, btn), btn, pos: new THREE.Vector3() };
         });
         m.pos.copy(pos).setY(1.9);
       }
@@ -95,8 +96,8 @@ export const Markers = {
         const bs = breedingState();
         if (bs && bs.done) {
           const m = this._ensure(`br:${b.id}`, () => {
-            const el = h('button.bubble.pe', { onclick: () => this.actions.collectBreeding() }, icon('heart'));
-            return { el, pos: new THREE.Vector3() };
+            const btn = h('button.bubble.pe', { onclick: () => this.actions.collectBreeding() }, icon('heart'));
+            return { el: h('div', null, btn), btn, pos: new THREE.Vector3() };
           });
           m.pos.copy(pos).setY(2.9);
         } else if (bs) {

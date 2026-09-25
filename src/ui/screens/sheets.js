@@ -1,6 +1,6 @@
 import { G } from '../../game/G.js';
 import { UI } from '../ui.js';
-import { h, icon, fmt, fmtTime, costEl, bar, setBar } from '../dom.js';
+import { h, icon, fmt, fmtTime, costEl, bar, setBar, append } from '../dom.js';
 import { BUILDINGS } from '../../data/buildings.js';
 import { CROPS, CROP_BY_ID } from '../../data/crops.js';
 import { RARITIES } from '../../data/rarities.js';
@@ -39,8 +39,8 @@ export function updateSheet(dt) {
   if (current && current.update) current.update(dt);
 }
 
-function actionBtn(label, iconName, cls, fn, { disabled = false, sub = null } = {}) {
-  const b = h(`button.btn.${cls}${disabled ? '.disabled' : ''}`, { onclick: (e) => { if (disabled) { b.classList.remove('shake-no'); void b.offsetWidth; b.classList.add('shake-no'); return; } fn(e); } }, iconName ? icon(iconName) : null, label, sub);
+function actionBtn(label, iconName, cls, fn, { disabled = false, sub = null, tut = null } = {}) {
+  const b = h(`button.btn.${cls}${disabled ? '.disabled' : ''}`, { 'data-tut': tut, onclick: (e) => { if (disabled) { b.classList.remove('shake-no'); void b.offsetWidth; b.classList.add('shake-no'); return; } fn(e); } }, iconName ? icon(iconName) : null, label, sub);
   return b;
 }
 
@@ -81,7 +81,7 @@ export function openBuildingSheet(b, A) {
     const t = h('b', null, fmtTime(left));
     stats.appendChild(h('div.stat.well', null, icon('hammer'), `${label}…`, t));
     const gems = finishNowCost(b);
-    actions.appendChild(actionBtn(gems ? 'Finish' : 'Finish Free', null, 'teal', () => A.finishBuilding(b), { sub: gems ? costEl({ gems }) : null }));
+    actions.appendChild(actionBtn(gems ? 'Finish' : 'Finish Free', null, 'teal', () => A.finishBuilding(b), { sub: gems ? costEl({ gems }) : null, tut: 'finish' }));
     if (A.adsReady() && left > 30) actions.appendChild(actionBtn('Speed Up', 'film', 'purple', () => A.adSpeedBuilding(b)));
     upd = () => {
       const l = remainingSec(b);
@@ -146,12 +146,12 @@ export function openBuildingSheet(b, A) {
         const c = CROP_BY_ID[b.crop];
         if (cropReady(b)) {
           stats.appendChild(h('div.stat.well', null, icon(`crop_${c.id}`), h('b', null, c.name), 'is ready!'));
-          actions.appendChild(actionBtn('Harvest', 'food', 'green', (e) => A.harvest(b.id, e.currentTarget)));
+          actions.appendChild(actionBtn('Harvest', 'food', 'green', (e) => A.harvest(b.id, e.currentTarget), { tut: 'harvest' }));
         } else {
           const t = h('b', null, '');
           stats.append(h('div.stat.well', null, icon(`crop_${c.id}`), h('b', null, c.name)), h('div.stat.well', null, icon('timer'), t), h('div.stat.well', null, icon('food'), h('b', null, `+${fmt(Math.round(c.food * yieldK))}`)));
           const gems = gemsForTime(Math.ceil((b.cropUntil - G.now()) / 1000));
-          actions.appendChild(actionBtn('Grow Now', null, 'teal', () => A.finishCrop(b), { sub: costEl({ gems }) }));
+          actions.appendChild(actionBtn(gems ? 'Grow Now' : 'Grow Free', null, 'teal', () => A.finishCrop(b), { sub: gems ? costEl({ gems }) : null, tut: 'grow' }));
           upd = () => {
             const left = Math.ceil((b.cropUntil - G.now()) / 1000);
             t.textContent = fmtTime(left);
@@ -161,7 +161,7 @@ export function openBuildingSheet(b, A) {
         }
       } else {
         stats.appendChild(h('div.stat.well', null, icon('farm'), 'Ready to plant'));
-        actions.appendChild(actionBtn('Plant', 'crop_berries', 'green', () => A.cropPicker(b)));
+        actions.appendChild(actionBtn('Plant', 'crop_berries', 'green', () => A.cropPicker(b), { tut: 'plant' }));
       }
       if (isUnlocked('bulk_farming') && farms().length > 1) {
         actions.appendChild(actionBtn('All', 'crop_roots', 'orange', () => A.cropPicker(null)));
@@ -173,12 +173,12 @@ export function openBuildingSheet(b, A) {
     }
     if (b.type === 'hatchery') {
       stats.appendChild(h('div.stat.well', null, icon('egg'), h('b', null, `${G.state.hatchery.length}/${hatcherySlots()}`), 'eggs'));
-      actions.appendChild(actionBtn('Open', 'egg', 'green', () => A.openHatchery()));
+      actions.appendChild(actionBtn('Open', 'egg', 'green', () => A.openHatchery(), { tut: 'hatchery-open' }));
     } else if (b.type === 'breeding') {
       const bs = breedingState();
       if (bs) stats.appendChild(h('div.stat.well', null, icon('heart'), bs.done ? 'Egg ready!' : `Breeding… ${fmtTime(bs.left)}`));
       else stats.appendChild(h('div.stat.well', null, icon('heart'), 'Ready to breed'));
-      actions.appendChild(actionBtn(bs && bs.done ? 'Collect' : 'Breed', 'breed', 'pink', () => (bs && bs.done ? A.collectBreeding() : A.breed())));
+      actions.appendChild(actionBtn(bs && bs.done ? 'Collect' : 'Breed', 'breed', 'pink', () => (bs && bs.done ? A.collectBreeding() : A.breed()), { tut: 'breed-sheet' }));
     } else if (b.type === 'gold_storage') {
       stats.appendChild(h('div.stat.well', null, icon('gold'), 'Capacity', h('b', null, fmt(goldCap()))));
     } else if (b.type === 'food_storage') {
@@ -258,7 +258,7 @@ export function openObstacleSheet(o, A) {
       };
       upd();
     } else {
-      stats.append(h('div.stat.well', null, icon('timer'), h('b', null, fmtTime(o.time))), h('div.stat.well', null, icon('xp'), h('b', null, `+${o.xp}`)), o.gems ? h('div.stat.well', null, icon('gems'), h('b', null, '?')) : null);
+      append(stats, [h('div.stat.well', null, icon('timer'), h('b', null, fmtTime(o.time))), h('div.stat.well', null, icon('xp'), h('b', null, `+${o.xp}`)), o.gems ? h('div.stat.well', null, icon('gems'), h('b', null, '?')) : null]);
       actions.appendChild(actionBtn('Clear', 'hammer', 'green', () => A.clearObstacle(o), { sub: costEl({ gold: o.cost }) }));
     }
   };
@@ -273,7 +273,7 @@ export function openObstacleSheet(o, A) {
 // --------------------------------------------------------------------------
 export function openPlacementSheet(A, { title = 'Place building', onConfirm, onCancel, cost = null }) {
   const hint = h('div.place-hint.pe', null, 'Drag to move · ', title);
-  const ok = h('button.btn.round.green', { onclick: () => onConfirm() }, icon('check'));
+  const ok = h('button.btn.round.green', { 'data-tut': 'place-ok', onclick: () => onConfirm() }, icon('check'));
   const no = h('button.btn.round.red', { onclick: () => onCancel() }, icon('close'));
   const ctl = h('div.place-ctl', null, no, ok);
   const wrap = h('div', null, hint, ctl);
@@ -309,7 +309,7 @@ export function openCropPicker(farm, A) {
       h('div.meta', null, icon('timer'), fmtTime(c.time), icon('food'), `+${fmt(Math.round(c.food * yieldK))}`),
       locked
         ? h('div.lockover', null, icon('lock'), h('div.ol.display', null, `Lv ${c.unlock}`))
-        : h('button.btn.sm.gold.buy', { onclick: () => { UI.close(scr); A.plant(farm, c.id); } }, costEl({ gold: c.cost })));
+        : h('button.btn.sm.gold.buy', { 'data-tut': `crop-${c.id}`, onclick: () => { UI.close(scr); A.plant(farm, c.id); } }, costEl({ gold: c.cost })));
     card.querySelector('.art .ico').style.cssText = 'width:4.2rem;height:4.2rem';
     grid.appendChild(card);
   }

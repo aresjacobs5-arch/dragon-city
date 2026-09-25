@@ -17,7 +17,7 @@ export const SDK = {
   onAdEnd: null,
   forceDevAds: false,
 
-  async init(timeoutMs = 6000) {
+  async init(timeoutMs = 3500) {
     const params = new URLSearchParams(location.search);
     this.forceDevAds = params.has('devads');
     if (params.has('nosdk')) return this;

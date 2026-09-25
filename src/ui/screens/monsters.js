@@ -159,6 +159,7 @@ export function openMonsterDetail(m, A, { tab = 'info' } = {}) {
     const mk = (label, mode, amount) => {
       const enough = G.state.res.food >= Math.min(amount, chunk);
       const b = h(`button.btn.${mode === 'level' ? 'orange' : 'green'}${enough ? '' : '.disabled'}`, {
+        'data-tut': mode === 1 ? 'feed' : mode === 'level' ? 'feed-level' : 'feed-5',
         onclick: () => {
           if (!enough) {
             A.notEnough({ food: amount });

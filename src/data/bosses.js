@@ -46,7 +46,7 @@ const BOSS_LIST = [
   {
     id: 'boss_stormdragon', name: 'Storm Dragon', elements: ['electric', 'water'], rarity: 'epic', role: 'striker', boss: true,
     abilities: ['static_nip', 'arc_lightning', 'overcharge', 'tempest_call'],
-    mechanics: { phases: [0.5], hpMult: 2.2 },
+    mechanics: { phases: [0.5], hpMult: 2.9 },
     model: {
       arch: 'dragon',
       colors: { skin: '#3a4a7a', belly: '#dfe8ff', snout: '#8a9ac0', accent: '#ffe45a', horn: '#ffe45a', eye: '#ffffff', glow: '#fff17a', membrane: '#6a8ac8', limb: '#2f3e6a', claw: '#fff4c2', brow: '#2a3a6a' },
@@ -61,7 +61,7 @@ const BOSS_LIST = [
   {
     id: 'boss_behemoth', name: 'Frost Behemoth', elements: ['ice', 'earth'], rarity: 'legendary', role: 'brawler', boss: true,
     abilities: ['frost_bite', 'blizzard', 'boss_shield', 'absolute_zero'],
-    mechanics: { shieldPhases: [0.66, 0.33], hpMult: 3.2 },
+    mechanics: { shieldPhases: [0.66, 0.33], hpMult: 4.0, atkMult: 1.7 },
     model: {
       arch: 'golem', rocky: true, knuckles: 'crystal',
       colors: { skin: '#dfeeff', belly: '#ffffff', accent: '#8fd8ff', armor: '#bfd8f0', fist: '#9fc8e8', eye: '#3b7cc9', glow: '#bff4ff', limb: '#cfe2f4', crystal: '#9fe6ff' },
@@ -75,7 +75,7 @@ const BOSS_LIST = [
   {
     id: 'boss_hydra', name: 'Mire Serpent', elements: ['dark', 'nature'], rarity: 'legendary', role: 'caster', boss: true,
     abilities: ['shadow_claw', 'curse', 'dust_wing', 'eclipse'],
-    mechanics: { summon: { at: [0.5], species: 'duskmoth', count: 2 }, rage: true, hpMult: 4.5 },
+    mechanics: { summon: { at: [0.5], species: 'duskmoth', count: 2 }, rage: true, hpMult: 6.2 },
     model: {
       arch: 'serpent',
       colors: { skin: '#3a4a2a', belly: '#9aae5a', accent: '#b67cff', accent2: '#d9ff6a', eye: '#d9ff6a', glow: '#b67cff', snout: '#4a5a3a' },
@@ -91,7 +91,7 @@ const BOSS_LIST = [
   {
     id: 'boss_sphinx', name: 'Arcane Sphinx', elements: ['magic', 'light'], rarity: 'legendary', role: 'caster', boss: true,
     abilities: ['arcane_bolt', 'rune_gaze', 'mana_burst', 'mana_tempest'],
-    mechanics: { phases: [0.66, 0.33], hpMult: 4.2 },
+    mechanics: { phases: [0.66, 0.33], hpMult: 6.8 },
     model: {
       arch: 'quad',
       colors: { skin: '#e8c88a', belly: '#fff0d0', snout: '#fff0d0', accent: '#3a6ad8', accent2: '#ffd23f', eye: '#3a6ad8', glow: '#ff8fe0', inner: '#ffc890', limb: '#d8b87a', claw: '#fff4dc', crown: '#3a6ad8', gem: '#ff5fcf' },
@@ -108,7 +108,7 @@ const BOSS_LIST = [
   {
     id: 'boss_voidemperor', name: 'Void Emperor', elements: ['void', 'dark'], rarity: 'legendary', role: 'striker', boss: true,
     abilities: ['null_touch', 'void_rift', 'event_horizon', 'singularity'],
-    mechanics: { phases: [0.5], summon: { at: [0.75, 0.25], species: 'nullmite', count: 2 }, rage: true, hpMult: 1.5 },
+    mechanics: { phases: [0.5], summon: { at: [0.75, 0.25], species: 'nullmite', count: 2 }, rage: true, hpMult: 1.3 },
     model: {
       arch: 'floater',
       colors: { skin: '#140c2a', belly: '#2a1a4a', accent: '#8a6aff', eye: '#ff5fcf', glow: '#c8b8ff', inner: '#ff5fcf', membrane: '#2a1a4a', crown: '#c8b8ff', gem: '#ff5fcf' },

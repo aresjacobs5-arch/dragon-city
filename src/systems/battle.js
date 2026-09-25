@@ -82,7 +82,9 @@ export class Battle {
 
   // ---------------- stats with modifiers
   stat(u, key) {
-    let v = u.base[key];
+    const v = u.base[key];
+    // crit and resistance are probabilities, not flat stats
+    if (key === 'crit' || key === 'res') return Math.max(0, Math.min(0.95, v || 0));
     let mod = 0;
     for (const s of u.statuses) {
       const d = STATUSES[s.id];
@@ -334,7 +336,7 @@ export class Battle {
     if (u.relic && u.relic.effect.elementDmg && el && u.relic.effect.elementDmg[el]) dmg *= 1 + u.relic.effect.elementDmg[el];
     if (ab.execute && t.hp / t.maxHp < 0.4) dmg *= 1 + ab.execute;
     if (t.boss && u.side === 0) dmg *= 1.0;
-    const crit = this.rand() < this.stat(u, 'crit') + (u.base.crit || 0) * 0;
+    const crit = this.rand() < this.stat(u, 'crit');
     if (crit) {
       dmg *= 1.5;
       if (u.side === 0) this.stats.crits++;

@@ -39,6 +39,7 @@ const VS = /* glsl */ `
   varying float vRot;
   varying vec3 vColor;
   uniform float uScale;
+  uniform float uMax;
   void main() {
     vAlpha = aAlpha;
     vFrame = aFrame;
@@ -46,7 +47,7 @@ const VS = /* glsl */ `
     vColor = aColor;
     vec4 mv = modelViewMatrix * vec4(position, 1.0);
     gl_Position = projectionMatrix * mv;
-    gl_PointSize = aSize * uScale / max(0.1, -mv.z);
+    gl_PointSize = min(aSize * uScale / max(0.1, -mv.z), uMax);
   }`;
 const FS = /* glsl */ `
   uniform sampler2D uAtlas;
@@ -88,7 +89,7 @@ class Pool {
     geo.setAttribute('aRot', new THREE.BufferAttribute(this.rot, 1).setUsage(THREE.DynamicDrawUsage));
     geo.setDrawRange(0, 0);
     this.mat = new THREE.ShaderMaterial({
-      uniforms: { uAtlas: { value: getParticleAtlas() }, uScale: { value: 300 } },
+      uniforms: { uAtlas: { value: getParticleAtlas() }, uScale: { value: 300 }, uMax: { value: 400 } },
       vertexShader: VS,
       fragmentShader: FS,
       transparent: true,
@@ -156,6 +157,9 @@ export class Particles {
     const s = pixelHeight / (2 * Math.tan((fov * Math.PI) / 360));
     this.normal.mat.uniforms.uScale.value = s;
     this.additive.mat.uniforms.uScale.value = s;
+    // never let a single sprite cover the screen
+    this.normal.mat.uniforms.uMax.value = pixelHeight * 0.4;
+    this.additive.mat.uniforms.uMax.value = pixelHeight * 0.3;
   }
   emit(type, pos, { count = 10, color = null, spread = 0.3, speed = 1, size = 1, dir = null, up = 1, life = 1 } = {}) {
     const pr = PRESETS[type] || PRESETS.sparkle;

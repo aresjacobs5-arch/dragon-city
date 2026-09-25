@@ -1,6 +1,6 @@
 import { G } from '../../game/G.js';
 import { UI } from '../ui.js';
-import { h, icon, fmt, fmtTime, costEl, bar } from '../dom.js';
+import { h, icon, fmt, fmtTime, costEl, bar, append } from '../dom.js';
 import { DAILY_REWARDS, WHEEL, CHESTS, RUNE_TYPES, RUNE_TIERS } from '../../data/rewards.js';
 import { UNLOCKS, xpToNext } from '../../data/unlocks.js';
 import { ISLAND_BY_ID } from '../../data/islands.js';
@@ -95,12 +95,12 @@ export function openWelcomeBack(off, A, onCollect) {
     acts.appendChild(h('button.btn.lg.green', { onclick: () => collect(1) }, 'Collect'));
     if (A.adsReady()) acts.appendChild(h('button.btn.lg.purple', { onclick: () => A.rewardedAd('offline_x2', () => collect(2)) }, icon('film'), '×2'));
   } else acts.appendChild(h('button.btn.lg.green', { onclick: () => collect(1) }, 'Continue'));
-  scr.panel.append(
+  append(scr.panel, [
     h('div.dlg-text', null, `While you were away (${awayTxt}) your monsters kept busy:`),
     row,
     h('div.row', { style: { justifyContent: 'center', flexWrap: 'wrap' } }, lines),
     off.away > 36000 ? h('div.small.muted', { style: { textAlign: 'center' } }, 'Habitats store gold up to their capacity — upgrade them to earn more while away.') : null,
-    acts);
+    acts]);
   UI.open(scr);
   return scr;
 }

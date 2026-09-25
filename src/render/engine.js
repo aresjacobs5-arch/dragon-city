@@ -133,6 +133,7 @@ export class Engine {
     r.clear(true, true, false);
     if (this.world && this.worldVisible) {
       r.render(this.world.scene, this.world.camera);
+      this.lastTris = r.info.render.triangles;
     }
     if (this.dim > 0.01) {
       this.dimMat.opacity = this.dim;
@@ -163,8 +164,35 @@ export class Engine {
           r.clearDepth();
         }
         r.render(vp.scene, cam);
+        this._blit(vp, rect);
       }
       r.setScissorTest(false);
+    }
+  }
+
+  // Copies a freshly rendered viewport region of the WebGL canvas into a 2D
+  // canvas living inside the viewport's DOM element. The 3D preview then sits
+  // in normal DOM stacking order (above panel backgrounds, below overlays).
+  _blit(vp, rect) {
+    let c = vp._canvas;
+    if (!c || c.parentNode !== vp.el) {
+      c = vp._canvas = document.createElement('canvas');
+      c.className = 'vp-canvas';
+      c.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;border-radius:inherit';
+      vp.el.prepend(c);
+      vp._ctx = c.getContext('2d', { alpha: false });
+    }
+    const pr = this.renderer.getPixelRatio();
+    const cw = Math.max(1, Math.round(rect.width * pr));
+    const ch = Math.max(1, Math.round(rect.height * pr));
+    if (c.width !== cw || c.height !== ch) {
+      c.width = cw;
+      c.height = ch;
+    }
+    try {
+      vp._ctx.drawImage(this.canvas, rect.left * pr, rect.top * pr, cw, ch, 0, 0, cw, ch);
+    } catch (e) {
+      /* canvas not ready */
     }
   }
 

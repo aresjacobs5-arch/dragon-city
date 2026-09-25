@@ -37,7 +37,7 @@ export function openShop(A, tab = 'habitats') {
   const scr = UI.panel({ key: 'shop', title: 'Shop', ribbon: 'orange', content: [h('div.shop', null, vtabs, items)] });
   const renderTabs = () => {
     vtabs.innerHTML = '';
-    for (const [k, label, ic] of TABS) vtabs.appendChild(h(`button.tab${cur === k ? '.on' : ''}`, { onclick: () => { cur = k; renderTabs(); render(); } }, icon(ic), label));
+    for (const [k, label, ic] of TABS) vtabs.appendChild(h(`button.tab${cur === k ? '.on' : ''}`, { 'data-tut': `tab-${k}`, onclick: () => { cur = k; renderTabs(); render(); } }, icon(ic), label));
   };
   const lvl = () => G.state.player.level;
 
@@ -65,7 +65,7 @@ export function openShop(A, tab = 'habitats') {
     if (locked) card.appendChild(h('div.lockover', null, icon('lock'), h('div.ol.display', { style: { fontSize: '1.2rem' } }, `Level ${block.level}`)));
     else if (owned) card.appendChild(h('button.btn.sm.buy.disabled', null, 'Built'));
     else if (limit) card.appendChild(h('button.btn.sm.buy.disabled', null, 'Max built'));
-    else card.appendChild(h(`button.btn.sm.buy.${cost.gems ? 'teal' : 'green'}`, { onclick: () => A.buyBuilding(def.id, scr) }, costEl(cost)));
+    else card.appendChild(h(`button.btn.sm.buy.${cost.gems ? 'teal' : 'green'}`, { 'data-tut': `buy-${def.id}`, onclick: () => A.buyBuilding(def.id, scr) }, costEl(cost)));
     return card;
   };
 
@@ -138,6 +138,12 @@ export function openShop(A, tab = 'habitats') {
   renderTabs();
   render();
   scr.refresh = render;
+  scr.tab = () => cur;
+  scr.setTab = (t) => {
+    cur = t;
+    renderTabs();
+    render();
+  };
   UI.open(scr);
   return scr;
 }

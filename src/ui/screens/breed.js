@@ -23,7 +23,7 @@ export function openBreed(A) {
     vps[k] = { el: vp, scene: stages[k].scene, camera: stages[k].camera, update: (dt) => stages[k].update(dt), hidden: true };
   }
   const outcomes = h('div.outcomes.hscroll.well');
-  const breedBtn = h('button.btn.lg.pink', { onclick: () => doBreed() }, icon('breed'), 'BREED');
+  const breedBtn = h('button.btn.lg.pink', { 'data-tut': 'breed-go', onclick: () => doBreed() }, icon('breed'), 'BREED');
   const tokenBtn = h('button.btn.sm.purple', { onclick: () => { sel.token = !sel.token; paint(); } }, icon('tokens'), 'Token');
   const mid = h('div.mid', null, h('div.heart.pulse', null, icon('heart')), breedBtn, tokenBtn, h('div.small.muted.t'));
   const pair = h('div.pair', null, slotEl.a.el, mid, slotEl.b.el);
@@ -102,10 +102,10 @@ export function openBreed(A) {
         actions.innerHTML = '';
         const now = breedingState();
         if (!now) return;
-        if (now.done) actions.appendChild(h('button.btn.lg.green', { onclick: () => { A.collectBreeding(); paint(); } }, icon('egg'), 'Collect Egg'));
+        if (now.done) actions.appendChild(h('button.btn.lg.green', { 'data-tut': 'breed-collect', onclick: () => { A.collectBreeding(); paint(); } }, icon('egg'), 'Collect Egg'));
         else {
           const gems = breedingSkipCost();
-          actions.appendChild(h('button.btn.teal', { onclick: () => { A.skipBreeding(); renderActions(); } }, gems ? 'Finish' : 'Finish Free', gems ? costEl({ gems }) : null));
+          actions.appendChild(h('button.btn.teal', { 'data-tut': 'breed-finish', onclick: () => { A.skipBreeding(); renderActions(); } }, gems ? 'Finish' : 'Finish Free', gems ? costEl({ gems }) : null));
           if (A.adsReady() && now.left > 20) actions.appendChild(h('button.btn.purple', { onclick: () => A.adSpeedBreeding(() => renderActions()) }, icon('film'), 'Speed Up'));
         }
       };
@@ -214,12 +214,12 @@ export function openHatchery(A) {
         btns.innerHTML = '';
         if (eggReady(egg)) {
           slot.classList.add('ready');
-          btns.appendChild(h('button.btn.sm.green.wide', { onclick: () => A.hatch(egg) }, 'HATCH!'));
+          btns.appendChild(h('button.btn.sm.green.wide', { 'data-tut': 'hatch', onclick: () => A.hatch(egg) }, 'HATCH!'));
         } else if (egg.until === null) {
           btns.appendChild(h('div.small.muted', null, 'Waiting for a slot'));
         } else {
           const gems = eggSkipCost(egg);
-          btns.appendChild(h('button.btn.sm.teal.wide', { onclick: () => { A.skipEgg(egg); renderBtns(); } }, gems ? 'Finish' : 'Finish Free', gems ? costEl({ gems }) : null));
+          btns.appendChild(h('button.btn.sm.teal.wide', { 'data-tut': 'egg-finish', onclick: () => { A.skipEgg(egg); renderBtns(); } }, gems ? 'Finish' : 'Finish Free', gems ? costEl({ gems }) : null));
           if (A.adsReady() && eggLeft(egg) > 20) btns.appendChild(h('button.btn.sm.purple.wide', { onclick: () => A.adSpeedEgg(egg, renderBtns) }, icon('film'), 'Speed Up'));
         }
       };

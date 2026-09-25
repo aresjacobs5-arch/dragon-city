@@ -473,6 +473,23 @@ export class HomeView extends HomeWorld {
 
   // ---------------------------------------------------------------- selection & picking
   pick(clientX, clientY) {
+    // Monsters are small and wander around: pick them generously in screen space.
+    let bestMon = null, bd = Infinity;
+    const eng = this.engine;
+    for (const [id, a] of this.actors) {
+      if (!a.view.group.visible) continue;
+      const base = a.view.group.position;
+      const pb = eng.project(_pv.set(base.x, base.y + a.view.worldHeight * 0.45, base.z), this.camera, _po1);
+      if (!pb.visible) continue;
+      const pt = eng.project(_pv.set(base.x, base.y + a.view.worldHeight, base.z), this.camera, _po2);
+      const r = Math.max(24, Math.abs(pb.y - pt.y) * 1.25);
+      const d = Math.hypot(pb.x - clientX, pb.y - clientY);
+      if (d < r && d < bd) {
+        bd = d;
+        bestMon = id;
+      }
+    }
+    if (bestMon != null) return { kind: 'monster', id: bestMon };
     const ray = this.camCtl.raycaster(clientX, clientY);
     const targets = [];
     for (const a of this.actors.values()) targets.push(a.view.mesh);
@@ -655,3 +672,7 @@ export class HomeView extends HomeWorld {
     }
   }
 }
+
+const _pv = new THREE.Vector3();
+const _po1 = { x: 0, y: 0, visible: false };
+const _po2 = { x: 0, y: 0, visible: false };

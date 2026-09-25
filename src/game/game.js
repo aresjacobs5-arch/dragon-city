@@ -92,6 +92,7 @@ export const Game = {
     progress(0.86, 'Almost there');
     HUD.init(this.actions);
     Markers.init(this.actions);
+    Campaign.init(this);
     this._bindInput();
     this._bindEvents();
     this.applyAudioSettings();
@@ -177,8 +178,8 @@ export const Game = {
   },
 
   _maybeShowLevelUp() {
-    if (!this.levelQueue.length || this.busy || G.mode !== 'island') return;
-    if (UI.stack.some((s) => ['levelup', 'rewards', 'reveal'].includes(s.key))) return;
+    if (!this.levelQueue.length || this.busy || (G.mode !== 'island' && G.mode !== 'map')) return;
+    if (UI.stack.length || (G.world && G.world.placing)) return;
     if (Tutorial.blocksPopups()) return;
     const lv = this.levelQueue.shift();
     Sheets.closeSheet();
@@ -1018,6 +1019,7 @@ Game.revealMonster = async function (m) {
   const prevMode = G.mode;
   await cloudTransition(() => {
     G.mode = 'reveal';
+    G.world.camCtl.enabled = false;
     G.engine.setWorld(sc);
     UI.open(scr);
     bottom.appendChild(h('div.tap-hint.ol', null, 'Tap to hatch!'));
@@ -1038,7 +1040,7 @@ Game.revealMonster = async function (m) {
       if (isNew) top.appendChild(h('div.big-title.gold', { style: { fontSize: '2.6rem' } }, 'NEW MONSTER!'));
       top.append(h('div.nm.display.ol', null, def.name), h('div.rar.rar-chip', { style: { background: R.color } }, R.name), h('div.els', null, def.elements.map((e) => icon(`el_${e}`))));
       const hab = B.compatibleHabitats(m.sp).filter((b) => B.habitatHasRoom(b)).sort((a, b) => b.level - a.level)[0];
-      const place = h('button.btn.lg.green', { onclick: () => finish(hab) }, icon('habitat'), hab ? 'PLACE' : 'CONTINUE');
+      const place = h('button.btn.lg.green', { 'data-tut': 'reveal-place', onclick: () => finish(hab) }, icon('habitat'), hab ? 'PLACE' : 'CONTINUE');
       bottom.append(place, h('div.small.ol-s', null, hab ? `Moves into your ${BUILDINGS[hab.type].name}` : `Build a ${ELEMENTS[def.elements[0]].name} Habitat to give it a home`));
       scr.el.onpointerdown = null;
     },
@@ -1050,7 +1052,8 @@ Game.revealMonster = async function (m) {
     done = true;
     await cloudTransition(() => {
       UI.close(scr);
-      G.mode = prevMode === 'reveal' ? 'island' : 'island';
+      G.mode = 'island';
+      G.world.camCtl.enabled = true;
       G.engine.setWorld(G.world);
       sc.clear();
       UI._sync();

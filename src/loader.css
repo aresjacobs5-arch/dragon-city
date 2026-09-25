@@ -1,0 +1,125 @@
+/* Loading screen (loaded before the game bundle). */
+@font-face {
+  font-family: 'Lilita One';
+  src: url('./assets/fonts/lilita-one.woff2') format('woff2');
+  font-display: block;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #8fd0f4;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+#game {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+#loader {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2.2vmin;
+  background: linear-gradient(#4fb0ee 0%, #9fd8f5 58%, #d9f1ff 100%);
+  font-family: 'Lilita One', system-ui, sans-serif;
+  color: #fff;
+  transition: opacity 0.6s;
+  overflow: hidden;
+}
+#loader.done {
+  opacity: 0;
+  pointer-events: none;
+}
+#loader .cloud {
+  position: absolute;
+  width: 46vmin;
+  height: 18vmin;
+  opacity: 0.9;
+  animation: ldDrift 14s linear infinite;
+}
+#loader .cloud.c2 {
+  top: 68%;
+  width: 60vmin;
+  height: 24vmin;
+  animation-duration: 19s;
+  animation-delay: -7s;
+  opacity: 0.75;
+}
+#loader .cloud.c1 {
+  top: 12%;
+}
+@keyframes ldDrift {
+  from { transform: translateX(-70vw); }
+  to { transform: translateX(120vw); }
+}
+#loader .isle {
+  width: min(34vmin, 260px);
+  height: auto;
+  animation: ldBob 3s ease-in-out infinite;
+  filter: drop-shadow(0 1.2vmin 0 rgba(42, 26, 47, 0.18));
+  z-index: 1;
+}
+@keyframes ldBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1.6vmin); }
+}
+#loader .logo {
+  font-size: min(11vmin, 92px);
+  line-height: 1;
+  letter-spacing: 0.03em;
+  z-index: 1;
+  text-shadow:
+    0.5vmin 0 0 #2a1a2f, -0.5vmin 0 0 #2a1a2f, 0 0.5vmin 0 #2a1a2f, 0 -0.5vmin 0 #2a1a2f,
+    0.36vmin 0.36vmin 0 #2a1a2f, -0.36vmin 0.36vmin 0 #2a1a2f, 0.36vmin -0.36vmin 0 #2a1a2f, -0.36vmin -0.36vmin 0 #2a1a2f,
+    0 1.1vmin 0 #2a1a2f;
+}
+#loader .logo span {
+  color: #ffd84a;
+}
+#loader .bar {
+  position: relative;
+  width: min(62vmin, 440px);
+  height: min(4.4vmin, 30px);
+  border-radius: 99px;
+  background: #4a3a52;
+  border: min(0.8vmin, 5px) solid #2a1a2f;
+  box-shadow: inset 0 0.5vmin 0 rgba(0, 0, 0, 0.3), 0 0.7vmin 0 rgba(42, 26, 47, 0.45);
+  overflow: hidden;
+  z-index: 1;
+}
+#loader .fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0%;
+  border-radius: 99px;
+  background: #62c63c;
+  box-shadow: inset 0 -0.7vmin 0 #3b8f22, inset 0 0.5vmin 0 rgba(255, 255, 255, 0.45);
+}
+#loader .label {
+  font-size: min(3.4vmin, 22px);
+  z-index: 1;
+  text-shadow: 0 0.35vmin 0 #2a1a2f, 0.25vmin 0 0 #2a1a2f, -0.25vmin 0 0 #2a1a2f, 0 -0.25vmin 0 #2a1a2f;
+}
+#loader .tip {
+  position: absolute;
+  bottom: 4vmin;
+  left: 6vw;
+  right: 6vw;
+  text-align: center;
+  font-family: system-ui, sans-serif;
+  font-weight: 800;
+  font-size: min(2.8vmin, 17px);
+  color: #2a4a6a;
+  z-index: 1;
+}

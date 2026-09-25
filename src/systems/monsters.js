@@ -105,7 +105,7 @@ export function monStats(m, opts = {}) {
   };
   if (def.boss && def.mechanics) {
     s.hp = Math.round(s.hp * (def.mechanics.hpMult || 3));
-    s.atk = Math.round(s.atk * 1.05);
+    s.atk = Math.round(s.atk * (def.mechanics.atkMult || 1.05));
   }
   return s;
 }

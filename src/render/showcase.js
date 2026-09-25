@@ -100,6 +100,7 @@ export class Showcase {
     }
     this.egg = null;
     this.mon = null;
+    this.seq = null;
   }
 
   // Runs the hatch sequence. Callbacks: onBurst(), onReveal()

@@ -3,6 +3,7 @@ import { h, icon, clear } from './dom.js';
 import './styles/base.css';
 import './styles/hud.css';
 import './styles/screens.css';
+import './styles/modes.css';
 
 // UI root: layers, responsive scale, screen stack, toasts, flying icons.
 export const UI = {
