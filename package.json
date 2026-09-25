@@ -1,0 +1,22 @@
+{
+  "name": "beasthaven",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Beasthaven - a monster collecting, breeding, island-building and battling browser game.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 5173",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0 --port 4173",
+    "test": "node tests/run-logic-tests.mjs"
+  },
+  "dependencies": {
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "vite": "^8.3.1",
+    "@fontsource/lilita-one": "^5.3.0",
+    "@fontsource/nunito": "^5.3.0",
+    "@fontsource/titan-one": "^5.3.0"
+  }
+}
