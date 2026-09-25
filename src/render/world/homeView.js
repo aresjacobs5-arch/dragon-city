@@ -168,28 +168,41 @@ export class HomeView extends HomeWorld {
   }
 
   _addLockedIsland(def) {
-    // A soft silhouette of the island wrapped in clouds with a lock label.
+    // A soft silhouette of the island under a cap of clouds, with a lock label.
     const t = buildIslandTerrain({ seed: def.seed, radius: def.radius, themeName: def.theme, lowDetail: true });
     t.group.position.set(def.center[0], -1.5, def.center[1]);
-    const mistMat = new THREE.MeshLambertMaterial({ color: '#f4f8ff', emissive: '#8a9ac0', emissiveIntensity: 0.4, transparent: true, opacity: 0.93 });
+    // fade the land toward the haze so it reads as distant and undiscovered
+    const haze = new THREE.Color('#d9e1f2');
+    const tmp = new THREE.Color();
+    t.group.traverse((o) => {
+      const col = o.isMesh && o.geometry.attributes.color;
+      if (!col) return;
+      for (let i = 0; i < col.count; i++) {
+        tmp.fromBufferAttribute(col, i).lerp(haze, 0.35);
+        col.setXYZ(i, tmp.r, tmp.g, tmp.b);
+      }
+      col.needsUpdate = true;
+    });
+    // all puffs of one island are merged into a single draw call
     const rng = new RNG(def.seed);
-    for (let i = 0; i < 9; i++) {
-      const a = (i / 9) * Math.PI * 2 + rng.range(-0.2, 0.2);
-      const r = def.radius * rng.range(0.2, 0.85);
-      const c = new THREE.Mesh(Geo.ico(rng.range(2.2, 3.6), 2), mistMat);
-      c.position.set(Math.cos(a) * r, rng.range(0.4, 1.8), Math.sin(a) * r);
-      c.scale.set(1.3, 0.62, 1.1);
-      t.group.add(c);
+    const puffs = [];
+    const puff = (r, x, y, z, sx, sy, sz) => puffs.push(Geo.xf(Geo.ico(r, 2), { p: [x, y, z], s: [sx, sy, sz] }));
+    // cloud cap hiding the land
+    puff(rng.range(3, 3.6), rng.range(-1, 1), 1.3, rng.range(-1, 1), 1.3, 0.62, 1.1);
+    for (const [n, rf, y0] of [[6, 0.36, 0.9], [10, 0.72, 0.4]]) {
+      for (let i = 0; i < n; i++) {
+        const a = (i / n) * Math.PI * 2 + rng.range(-0.2, 0.2);
+        const r = def.radius * rf * rng.range(0.9, 1.1);
+        puff(rng.range(2.4, 3.4), Math.cos(a) * r, y0 + rng.range(0, 0.9), Math.sin(a) * r, 1.3, 0.62, 1.1);
+      }
     }
     // a cloud bank hugging the cliffs so undiscovered islands read as soft, not dark
     for (let i = 0; i < 12; i++) {
       const a = (i / 12) * Math.PI * 2 + rng.range(-0.15, 0.15);
       const r = def.radius * rng.range(0.78, 1.02);
-      const c = new THREE.Mesh(Geo.ico(rng.range(2.6, 4.2), 2), mistMat);
-      c.position.set(Math.cos(a) * r, rng.range(-5.5, -1.2), Math.sin(a) * r);
-      c.scale.set(1.35, 0.72, 1.2);
-      t.group.add(c);
+      puff(rng.range(2.6, 4.2), Math.cos(a) * r, rng.range(-5.5, -1.2), Math.sin(a) * r, 1.35, 0.72, 1.2);
     }
+    t.group.add(new THREE.Mesh(Geo.merge(puffs), lockedMistMaterial()));
     t.group.userData.lockedIsland = def.id;
     this.scene.add(t.group);
     this.locked.set(def.id, t.group);
@@ -200,6 +213,7 @@ export class HomeView extends HomeWorld {
     if (g) {
       this.scene.remove(g);
       this.locked.delete(id);
+      g.traverse((o) => o.isMesh && o.geometry.dispose());
     }
     const view = this.addIsland(ISLAND_BY_ID[id], true);
     view.group.position.y = -3;
@@ -279,8 +293,12 @@ export class HomeView extends HomeWorld {
     }
   }
 
+  // Obstacles are drawn as merged batches (one per material) rather than one
+  // mesh each; the per-obstacle meshes stay out of the scene and are only used
+  // for picking and for the removal animation.
   syncObstacles() {
     const alive = new Set();
+    let changed = false;
     for (const id of G.state.islands) {
       const def = ISLAND_BY_ID[id];
       const T = getTheme(def.theme);
@@ -298,15 +316,39 @@ export class HomeView extends HomeWorld {
         mesh.position.set(def.center[0] + o.x + o.w / 2, 0, def.center[1] + o.z + o.d / 2);
         mesh.rotation.y = o.rot;
         mesh.userData.pickObstacle = o.id;
-        this.scene.add(mesh);
+        mesh.userData.flat = flat;
+        mesh.updateMatrixWorld(true);
         this.oViews.set(o.id, mesh);
+        changed = true;
       }
     }
     for (const [id, mesh] of this.oViews) {
       if (!alive.has(id)) {
-        this.scene.remove(mesh);
+        mesh.geometry.dispose();
         this.oViews.delete(id);
+        changed = true;
       }
+    }
+    if (changed || !this.oBatch) this._rebuildObstacleBatch();
+  }
+
+  _rebuildObstacleBatch() {
+    for (const m of this.oBatch || []) {
+      this.scene.remove(m);
+      m.geometry.dispose();
+    }
+    this.oBatch = [];
+    for (const flat of [true, false]) {
+      const parts = [];
+      for (const mesh of this.oViews.values()) {
+        if (mesh.userData.flat === flat) parts.push(mesh.geometry.clone().applyMatrix4(mesh.matrixWorld));
+      }
+      if (!parts.length) continue;
+      const batch = new THREE.Mesh(Geo.merge(parts), sharedEnvMaterial(flat));
+      batch.castShadow = true;
+      batch.receiveShadow = true;
+      this.scene.add(batch);
+      this.oBatch.push(batch);
     }
   }
 
@@ -314,6 +356,8 @@ export class HomeView extends HomeWorld {
     const mesh = this.oViews.get(id);
     if (!mesh) return;
     this.oViews.delete(id);
+    this._rebuildObstacleBatch();
+    this.scene.add(mesh);
     const start = this.time;
     const s0 = mesh.scale.x;
     this.particles.emit('puff', mesh.position.clone().setY(0.5), { count: 16, spread: 0.5 });
@@ -322,6 +366,7 @@ export class HomeView extends HomeWorld {
       const k = (this.time - start) / 0.35;
       if (k >= 1) {
         this.scene.remove(mesh);
+        mesh.geometry.dispose();
         return true;
       }
       mesh.scale.setScalar(s0 * (1 - k) * (1 + Math.sin(k * Math.PI) * 0.3));
@@ -670,6 +715,11 @@ export class HomeView extends HomeWorld {
   }
 }
 
+let _mistMat = null;
+function lockedMistMaterial() {
+  if (!_mistMat) _mistMat = new THREE.MeshLambertMaterial({ color: '#f4f8ff', emissive: '#8a9ac0', emissiveIntensity: 0.4, transparent: true, opacity: 0.93 });
+  return _mistMat;
+}
 const _pv = new THREE.Vector3();
 const _po1 = { x: 0, y: 0, visible: false };
 const _po2 = { x: 0, y: 0, visible: false };
