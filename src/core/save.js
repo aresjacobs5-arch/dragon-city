@@ -124,7 +124,7 @@ export function loadGame() {
       console.warn('[save] backup invalid:', e.message);
     }
   }
-  if (corrupted && primary) write(`beasthaven.corrupt.${Date.now()}`, primary);
+  if (corrupted && primary) write('beasthaven.corrupt', primary); // keep one copy for support, never accumulate
   if (result) return { state: result.state, t: result.t, fresh: false, recovered: corrupted };
   return { state: null, fresh: true, recovered: false, corrupted };
 }

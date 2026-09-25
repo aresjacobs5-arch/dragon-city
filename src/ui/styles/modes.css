@@ -743,6 +743,24 @@
   transform: translate(-50%, -50%);
 }
 @media (max-aspect-ratio: 1/1) {
+  .map-hud .title {
+    width: auto;
+    top: 4.6rem;
+  }
+  .map-hud .title .ribbon {
+    font-size: 1.2rem;
+    min-width: 0;
+    padding: 0.3rem 1.6rem 0.45rem;
+  }
+  .map-hud .stars {
+    top: 8.4rem;
+  }
+  .bhud .hint-bubble {
+    white-space: normal;
+    max-width: 88vw;
+    text-align: center;
+    bottom: 7.6rem;
+  }
   .rune-forge {
     flex-direction: column;
   }
@@ -764,4 +782,8 @@
     flex-wrap: wrap;
     justify-content: center;
   }
+}
+
+.bhud .order:empty {
+  display: none;
 }

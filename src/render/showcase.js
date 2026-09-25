@@ -120,7 +120,14 @@ export class Showcase {
     const wobbleTime = 1.0 + drama * 0.45;
     this.seq = { t: 0, phase: 'drop', drama, wobbleTime, onBurst, onReveal, sfx, landed: false, cracks: 0 };
     this.cracks = [];
-    this.camera.position.set(0, 2.4, 7.2);
+    // frame by final monster size: keep it in the lower-middle, clear of the title text
+    const hFinal = this.mon.worldHeight * 1.6;
+    const vfov = (this.camera.fov * Math.PI) / 180;
+    this.revealDist = Math.min(12, Math.max(5.2, hFinal / (0.5 * 2 * Math.tan(vfov / 2)) + 1.2));
+    this.lookY = Math.max(1.05, hFinal * 0.66);
+    this.camY = 2.4 + (this.lookY - 1.05);
+    this._ly = 1.05;
+    this.camera.position.set(0, this.camY, 7.2);
     this.camera.lookAt(0, 1.1, 0);
   }
 
@@ -229,15 +236,19 @@ export class Showcase {
     this.glowRing.material.opacity = 0.35 + Math.sin(this.time * 3) * 0.2;
     if (this.mon) this.mon.update(dt);
     // camera: slow push in with shake
-    const target = this.mon && this.seq && this.seq.phase === 'reveal' ? 6.0 : 7.2;
-    this.camera.position.z += (target - this.camera.position.z) * (1 - Math.exp(-2 * dt));
+    const reveal = this.mon && this.seq && this.seq.phase === 'reveal';
+    const target = reveal ? this.revealDist || 6 : 7.2;
+    const k = 1 - Math.exp(-2 * dt);
+    this.camera.position.z += (target - this.camera.position.z) * k;
+    this._ly = (this._ly ?? 1.05) + ((reveal ? this.lookY || 1.05 : 1.05) - (this._ly ?? 1.05)) * k;
+    this.camera.position.y = (this.camY || 2.4) + (this._ly - (this.lookY || 1.05)) * 0.5;
     this.camera.position.x = Math.sin(this.time * 0.3) * 0.25;
-    this.camera.lookAt(0, 1.05, 0);
+    this.camera.lookAt(0, this._ly, 0);
     if (this.shake > 0) {
       this.shake = Math.max(0, this.shake - dt * 1.6);
       const s2 = this.shake * this.shake * 0.25;
       this.camera.position.x += (Math.random() - 0.5) * s2;
-      this.camera.position.y = 2.4 + (Math.random() - 0.5) * s2;
+      this.camera.position.y += (Math.random() - 0.5) * s2;
     }
     this.particles.setScale(this.engine.height * this.engine.renderer.getPixelRatio(), this.camera.fov);
     this.particles.update(dt);

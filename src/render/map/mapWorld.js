@@ -224,7 +224,7 @@ export class MapWorld {
     group.add(sky);
     const sea = createCloudSea({ y: -42, fog: T.fog, color: T.lava ? '#ffe2c8' : '#ffffff', shade: T.lava ? '#d8a08a' : '#b9cdea' });
     group.add(sea);
-    const clouds = new CloudLayer({ seed: world.id * 3 + 1, count: 26, area: 110, yRange: [-28, -5], avoidRadius: 12, center: new THREE.Vector3(0, 0, -34) });
+    const clouds = new CloudLayer({ seed: world.id * 3 + 1, count: 26, area: 110, yRange: [-38, -15], avoidRadius: 12, center: new THREE.Vector3(0, 0, -34) });
     group.add(clouds.group);
     return { id: world.id, world, group, T, nodes, sky, sea, clouds, boss: null };
   }

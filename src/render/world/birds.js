@@ -62,19 +62,19 @@ export class Birds {
     this._m = new THREE.Matrix4();
     this._q = new THREE.Quaternion();
     this._p = new THREE.Vector3();
-    this._s = new THREE.Vector3(1.6, 1.6, 1.6);
+    this._s = new THREE.Vector3(1.0, 1.0, 1.0);
     this._up = new THREE.Vector3(0, 1, 0);
   }
 
   update(dt, time, center) {
     this.t += dt;
-    const R = 34;
-    const a = this.t * 0.07;
+    const R = 27;
+    const a = this.t * 0.09;
     const cx = Math.cos(a) * R + center.x * 0.3;
     const cz = Math.sin(a * 1.3) * R * 0.7 + center.z * 0.3;
-    const cy = 11 + Math.sin(this.t * 0.35) * 2.5;
-    const dx = -Math.sin(a) * R * 0.07;
-    const dz = Math.cos(a * 1.3) * R * 0.7 * 1.3 * 0.07;
+    const cy = 5.5 + Math.sin(this.t * 0.35) * 1.2;
+    const dx = -Math.sin(a) * R * 0.09;
+    const dz = Math.cos(a * 1.3) * R * 0.7 * 1.3 * 0.09;
     const yaw = Math.atan2(dx, dz);
     const bank = Math.sin(this.t * 0.2) * 0.25;
     this._q.setFromEuler(new THREE.Euler(0, yaw, bank, 'YXZ'));

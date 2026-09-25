@@ -47,7 +47,6 @@ export const Game = {
   async boot(progress) {
     progress(0.05, 'Waking the islands');
     UI.init();
-    SDK.loadingStart();
     const sdkP = SDK.init();
     // ---- engine
     const canvas = document.getElementById('game');
@@ -57,6 +56,7 @@ export const Game = {
     G.audio = Audio;
     progress(0.15, 'Connecting');
     await sdkP;
+    SDK.loadingStart();
     SDK.onMuteChange = (m) => Audio.setSdkMuted(m);
     SDK.onAdStart = () => Audio.pause(true);
     SDK.onAdEnd = () => Audio.pause(false);
@@ -120,6 +120,17 @@ export const Game = {
     window.addEventListener('keydown', unlock, true);
     onAnyClick(() => Audio.play('click'));
     SDK.gameplayStart();
+    // pause gameplay reporting, music and saving cadence while the tab is hidden
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        SDK.gameplayStop();
+        Audio.pause(true, 'hidden');
+        saveGame(true);
+      } else {
+        Audio.pause(false, 'hidden');
+        if (!SDK.adPlaying) SDK.gameplayStart();
+      }
+    });
     // offline earnings
     if (!fresh) {
       const off = computeOffline(G.state.lastTick);
@@ -181,7 +192,13 @@ export const Game = {
     if (!this.levelQueue.length || this.busy || (G.mode !== 'island' && G.mode !== 'map')) return;
     if (UI.stack.length || (G.world && G.world.placing)) return;
     if (Tutorial.blocksPopups()) return;
-    const lv = this.levelQueue.shift();
+    // several level-ups at once (big rewards) become one celebration
+    const all = this.levelQueue.splice(0);
+    const lv = {
+      level: all[all.length - 1].level,
+      unlocks: all.flatMap((l) => l.unlocks),
+      reward: all.reduce((r, l) => ({ gold: r.gold + l.reward.gold, food: r.food + l.reward.food, gems: r.gems + l.reward.gems }), { gold: 0, food: 0, gems: 0 }),
+    };
     Sheets.closeSheet();
     Audio.jingle('levelup');
     SDK.happytime();

@@ -23,10 +23,23 @@ const FORMATION = [
   [6.0, 0.3],
 ];
 const BOSS_FORMATION = [
-  [4.7, -0.7],
+  [5.2, -1.1],
   [2.4, -2.7],
   [2.6, 2.5],
   [1.9, 0.0],
+];
+// Portrait screens: your team at the bottom, enemies at the top.
+const V_FORMATION = [
+  [0, 2.5],
+  [-1.75, 3.9],
+  [1.75, 3.9],
+  [0, 5.2],
+];
+const V_BOSS_FORMATION = [
+  [0, -3.7],
+  [-1.9, -1.8],
+  [1.9, -1.8],
+  [0, -1.2],
 ];
 
 // Particle recipes per element for impacts and trails.
@@ -250,31 +263,75 @@ export class Arena {
     this.setTheme(theme);
     this.clearUnits();
     this.bossFight = bossFight;
+    this.aspect = this.engine.width / this.engine.height;
+    this.vertical = this.aspect < 0.85;
     for (const u of units) this.addUnit(u);
     this.shot('overview', { instant: true });
   }
 
   slotPos(side, slot, out = new THREE.Vector3()) {
+    if (this.vertical) {
+      if (side === 1 && this.bossFight) {
+        const p = V_BOSS_FORMATION[slot] || V_BOSS_FORMATION[0];
+        return out.set(p[0], 0, p[1]);
+      }
+      const p = V_FORMATION[slot] || V_FORMATION[0];
+      return side === 0 ? out.set(p[0], 0, p[1]) : out.set(-p[0], 0, -p[1] + 0.3);
+    }
     const table = side === 1 && this.bossFight ? BOSS_FORMATION : FORMATION;
     const p = table[slot] || table[0];
     const sx = side === 0 ? -1 : 1;
     return out.set(p[0] * sx, 0, p[1]);
   }
 
+  facingFor(side) {
+    if (this.vertical) return side === 0 ? Math.PI - 0.62 : -0.38;
+    return side === 0 ? Math.PI / 2 - 0.42 : -Math.PI / 2 + 0.42;
+  }
+
+  // Switches between landscape and portrait formations (called on resize).
+  setVertical(v) {
+    if (this.vertical === v) return;
+    this.vertical = v;
+    for (const u of this.units.values()) {
+      this.slotPos(u.side, u.slot, u.base);
+      u.facing = this.facingFor(u.side);
+      if (!this.tweens.length) {
+        u.view.group.position.copy(u.base);
+        u.view.group.rotation.y = u.facing;
+      }
+    }
+  }
+
+  sideCenter(side, out = new THREE.Vector3()) {
+    out.set(0, 0, 0);
+    let n = 0;
+    for (const u of this.units.values()) {
+      if (u.side !== side || !u.alive) continue;
+      out.add(u.base);
+      n++;
+    }
+    if (!n) return this.slotPos(side, 0, out);
+    return out.multiplyScalar(1 / n);
+  }
+
   addUnit(u, { pop = false } = {}) {
     const view = new MonsterView(u.def, u.boss ? 0 : stageForLevel(u.lvl), { castShadow: true, cloud: false, rim: 0.6 });
     const base = this.slotPos(u.side, u.slot);
     view.group.position.copy(base);
-    const facing = u.side === 0 ? Math.PI / 2 - 0.42 : -Math.PI / 2 + 0.42;
+    const facing = this.facingFor(u.side);
     view.group.rotation.y = facing;
     this.scene.add(view.group);
-    const radius = view.template.radius * view.template.scale;
-    const rec = { uid: u.uid, view, base, facing, side: u.side, slot: u.slot, boss: !!u.boss, alive: true, radius, height: view.worldHeight, bubble: null, def: u.def };
+    // bosses tower over everyone else
+    const extra = u.boss ? 1.75 : 1;
+    view.group.scale.setScalar(extra);
+    const radius = view.template.radius * view.template.scale * extra;
+    const rec = { uid: u.uid, view, base, facing, side: u.side, slot: u.slot, boss: !!u.boss, alive: true, radius, height: view.worldHeight * extra, bubble: null, def: u.def };
     this.units.set(u.uid, rec);
     if (pop) {
       view.group.scale.setScalar(0.001);
       this.particles.emit('puff', base.clone().setY(0.4), { count: 16, spread: 0.6 });
-      this.tween(0.45, (k) => view.group.scale.setScalar(Math.max(0.001, ease.outBack(k))));
+      this.tween(0.45, (k) => view.group.scale.setScalar(Math.max(0.001, ease.outBack(k) * extra)));
     }
     return rec;
   }
@@ -313,20 +370,31 @@ export class Arena {
 
   // ------------------------------------------------------------------ camera
   _overview(out) {
-    // fit the combatants horizontally for any aspect ratio
+    // fit every living combatant for any aspect ratio
     const vfov = (this.camera.fov * Math.PI) / 180;
     const hfov = 2 * Math.atan(Math.tan(vfov / 2) * this.aspect);
-    let maxX = 2.7, maxH = 1;
+    let maxX = 2.0, maxH = 1, minZ = 0, maxZ = 0;
     for (const u of this.units.values()) {
       if (!u.alive) continue;
       maxX = Math.max(maxX, Math.abs(u.base.x) + u.radius);
       maxH = Math.max(maxH, u.height);
+      minZ = Math.min(minZ, u.base.z);
+      maxZ = Math.max(maxZ, u.base.z);
+    }
+    if (this.vertical) {
+      const halfW = Math.max(2.7, maxX + 0.9);
+      const elev = 0.66;
+      const dist = Math.max(10, halfW / Math.tan(hfov / 2) + 1.5);
+      const cz = (minZ + maxZ) * 0.5 + 0.4;
+      out.pos.set(0, 0.8 + Math.sin(elev) * dist, cz + Math.cos(elev) * dist);
+      out.look.set(0, 0.6, cz - 0.4);
+      return out;
     }
     const halfW = Math.max(4.6, maxX + 1.6, maxH * 1.5);
     const dist = Math.max(9, halfW / Math.tan(hfov / 2) + 2.5);
     const elev = 0.36;
     out.pos.set(0, 1.0 + Math.sin(elev) * dist, Math.cos(elev) * dist);
-    out.look.set(0, this.aspect < 1 ? 1.6 : 1.1, -0.2);
+    out.look.set(0, 1.1, -0.2);
     return out;
   }
 
@@ -345,9 +413,11 @@ export class Arena {
       goal.look.set(p.x, u.height * 0.55, p.z);
       goal.pos.copy(p).addScaledVector(f, size * 1.7 + 1.6).add(_v.set(0, size * 0.55 + 0.7, 1.2));
     } else if (name === 'victory') {
-      const cx = u ? u.view.group.position.x : -3.5;
-      goal.look.set(cx, 1.1, 0);
-      goal.pos.set(cx + 1.5, 3.4, 10);
+      // look at the winners from the front
+      const c = this.sideCenter(0, new THREE.Vector3());
+      const f = _v2.set(Math.sin(this.facingFor(0)), 0, Math.cos(this.facingFor(0)));
+      goal.look.set(c.x, 0.9, c.z);
+      goal.pos.copy(c).addScaledVector(f, 6.5).add(_v.set(this.vertical ? 0 : 1.2, 2.6, this.vertical ? 1.5 : 1.5));
     }
     this.shotName = name;
     if (instant) {
@@ -423,12 +493,14 @@ export class Arena {
     this.particles.emit(fx.hit, c, { count: crit ? 16 : 9, spread: 0.35, speed: 1.3, color: el === 'metal' ? '#e8f0ff' : null });
     this.particles.emit('star', c, { count: crit ? 8 : 3, spread: 0.2, speed: 1.1 });
     if (crit || big) this.shake(crit ? 0.45 : 0.35);
-    // knockback wobble
-    const dir = u.side === 0 ? -1 : 1;
-    const base = u.view.group.position.x;
+    // knockback wobble (away from the attacker's side)
+    const kx = -Math.sin(u.facing), kz = -Math.cos(u.facing);
+    const bx = u.view.group.position.x, bz = u.view.group.position.z;
     this.tween(0.22, (k) => {
       if (!u.alive && k < 1) return;
-      u.view.group.position.x = base + Math.sin(k * Math.PI) * 0.18 * dir;
+      const w = Math.sin(k * Math.PI) * 0.18;
+      u.view.group.position.x = bx + kx * w;
+      u.view.group.position.z = bz + kz * w;
     });
   }
 
@@ -668,8 +740,7 @@ export class Arena {
         await a.view.animator.play('jump', { duration: 0.6 });
         sfx('rock');
         const side = targets.length ? targets[0].side : 1 - a.side;
-        const cx = side === 0 ? -3.8 : 3.8;
-        this.groundRing(_v.set(cx, 0.05, 0), color, 5.5, 0.5);
+        this.groundRing(this.sideCenter(side, new THREE.Vector3()).setY(0.05), color, 5.5, 0.5);
         this.groundRing(a.view.group.position.clone().setY(0.05), '#ffffff', 2.2, 0.35);
         for (const t of targets) this.particles.emit('rock', t.view.group.position.clone().setY(0.3), { count: 10, spread: 0.6 });
         this.shake(0.7);
@@ -884,20 +955,29 @@ export class Arena {
   async groundWave(a, targets, color, hit) {
     const side = targets.length ? targets[0].side : 1 - a.side;
     const from = a.view.group.position.clone().setY(0.1);
-    const toX = side === a.side ? a.view.group.position.x : side === 1 ? 5.5 : -5.5;
+    const center = this.sideCenter(side, new THREE.Vector3());
+    const dir = center.clone().sub(from).setY(0);
+    if (dir.lengthSq() < 0.01) dir.set(side === 1 ? 1 : -1, 0, 0);
+    const travel = dir.length() + 2.2;
+    dir.normalize();
     const wall = new THREE.Mesh(this.geo.pillar, glowMat(color, 0.55));
     wall.scale.set(0.5, 1.4, 3.8);
+    wall.rotation.y = Math.atan2(dir.x, dir.z) + Math.PI / 2;
     wall.position.copy(from);
     this.fxGroup.add(wall);
+    const side2 = new THREE.Vector3(-dir.z, 0, dir.x);
     const hitDone = new Set();
     await this.tween(0.55, (k) => {
-      wall.position.x = from.x + (toX - from.x) * k;
+      wall.position.copy(from).addScaledVector(dir, travel * k);
       wall.scale.y = 1.4 + Math.sin(k * Math.PI) * 0.8;
       wall.material.opacity = 0.55 * (1 - k * 0.5);
-      if (Math.random() < 0.7) this.particles.emit(hit, _v.set(wall.position.x, 0.4, (Math.random() - 0.5) * 6), { count: 1, spread: 0.2, speed: 1.2 });
+      if (Math.random() < 0.7) {
+        const p = wall.position.clone().addScaledVector(side2, (Math.random() - 0.5) * 6).setY(0.4);
+        this.particles.emit(hit, p, { count: 1, spread: 0.2, speed: 1.2 });
+      }
       for (const t of targets) {
         if (hitDone.has(t.uid)) continue;
-        if ((toX - from.x) * (t.view.group.position.x - wall.position.x) <= 0) {
+        if (_v.copy(t.view.group.position).sub(wall.position).dot(dir) <= 0) {
           hitDone.add(t.uid);
           this.particles.emit(hit, this.chestPos(t.uid, new THREE.Vector3()), { count: 10, spread: 0.3 });
         }
@@ -1000,7 +1080,8 @@ export class Arena {
   resize(w, h) {
     this.aspect = w / h;
     this.camera.aspect = w / h;
-    this.camera.fov = w < h ? 50 : 34;
+    this.camera.fov = w < h ? 46 : 34;
     this.camera.updateProjectionMatrix();
+    this.setVertical(w / h < 0.85);
   }
 }

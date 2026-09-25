@@ -3,6 +3,12 @@ import { G } from './game/G.js';
 import { Campaign } from './game/campaignMode.js';
 import { Tutorial } from './game/tutorial.js';
 import { UI } from './ui/ui.js';
+import * as B from './systems/buildings.js';
+import * as M from './systems/monsters.js';
+import * as HT from './systems/hatchery.js';
+import * as BR from './systems/breeding.js';
+import * as CP from './systems/campaign.js';
+import { saveGame, loadGame } from './core/save.js';
 
 // Entry point: drives the loading bar from real boot stages, then fades in.
 const loader = document.getElementById('loader');
@@ -34,6 +40,12 @@ window.addEventListener('keydown', (e) => {
   if (e.key === ' ' && e.target === document.body) e.preventDefault();
 });
 
+// Developer time travel for testing offline earnings: ?dev&timeskip=<seconds>
+{
+  const q = new URLSearchParams(location.search);
+  if (q.has('dev') && q.get('timeskip')) G.timeOffset = Number(q.get('timeskip')) * 1000 || 0;
+}
+
 Game.boot(progress)
   .then(() => {
     target = 1;
@@ -44,7 +56,7 @@ Game.boot(progress)
       setTimeout(() => loader.remove(), 700);
       window.__ready = true;
     }, 250);
-    if (new URLSearchParams(location.search).has('dev')) window.__bh = { G, Game, Campaign, Tutorial, UI };
+    if (new URLSearchParams(location.search).has('dev')) window.__bh = { G, Game, Campaign, Tutorial, UI, B, M, HT, BR, CP, saveGame, loadGame };
   })
   .catch((e) => {
     console.error(e);

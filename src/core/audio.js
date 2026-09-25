@@ -88,8 +88,12 @@ class Synth {
     this.music.gain.setTargetAtTime(this.musicVol * 0.38, t, 0.1);
     this.sfx.gain.setTargetAtTime(this.sfxVol * 0.7, t, 0.05);
   }
-  pause(v) {
-    this.paused = v;
+  // Several things can pause audio at once (ads, hidden tab); track each reason.
+  pause(v, reason = 'ad') {
+    if (!this.pauseReasons) this.pauseReasons = new Set();
+    if (v) this.pauseReasons.add(reason);
+    else this.pauseReasons.delete(reason);
+    this.paused = this.pauseReasons.size > 0;
     this.apply();
   }
 
