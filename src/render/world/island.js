@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { createNoise2D } from '../../core/noise.js';
-import { RNG } from '../../core/rng.js';
+import { islandShape } from '../../core/islandShape.js';
 import { smoothstep, clamp } from '../../core/math.js';
 import { sharedEnvMaterial } from '../materials.js';
 import { theme as getTheme } from './themes.js';
@@ -21,19 +21,9 @@ export function buildIslandTerrain({
   shapeAmp = 1,
 }) {
   const T = getTheme(themeName);
-  const rng = new RNG(seed);
+  const shape = islandShape(seed, radius, shapeAmp);
+  const { R, inside, rng } = shape;
   const noise = createNoise2D(seed * 7 + 3);
-  const harm = [];
-  for (let k = 2; k <= 7; k++) harm.push({ k, a: (rng.range(0.02, 0.07) / (k * 0.45)) * shapeAmp, p: rng.range(0, Math.PI * 2) });
-  const R = (th) => {
-    let s = 1;
-    for (const h of harm) s += h.a * Math.sin(h.k * th + h.p);
-    return radius * s;
-  };
-  const inside = (x, z, margin = 0) => {
-    const th = Math.atan2(z, x);
-    return Math.hypot(x, z) <= R(th) - margin;
-  };
 
   const group = new THREE.Group();
   group.name = 'island';
