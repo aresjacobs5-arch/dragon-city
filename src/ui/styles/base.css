@@ -1,0 +1,514 @@
+/* ============================================================
+   BEASTHAVEN — UI design system
+   Storybook fantasy: ink outlines, paper panels, chunky tactile
+   buttons, illustrated icons. Sizes in rem (root scales with viewport).
+   ============================================================ */
+@font-face {
+  font-family: 'Lilita One';
+  src: url('../../assets/fonts/lilita-one.woff2') format('woff2');
+  font-display: block;
+}
+@font-face {
+  font-family: 'Titan One';
+  src: url('../../assets/fonts/titan-one.woff2') format('woff2');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Nunito';
+  src: url('../../assets/fonts/nunito-800.woff2') format('woff2');
+  font-weight: 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Nunito';
+  src: url('../../assets/fonts/nunito-900.woff2') format('woff2');
+  font-weight: 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Nunito';
+  src: url('../../assets/fonts/nunito-700.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+
+:root {
+  --ink: #2a1a2f;
+  --ink-soft: rgba(42, 26, 47, 0.45);
+  --paper: #fff6e3;
+  --paper2: #f4e3c2;
+  --paper3: #e6cf9f;
+  --paper4: #d8bb85;
+  --text: #3a2230;
+  --muted: #8f6f76;
+  --green: #62c63c;
+  --green-d: #3b8f22;
+  --blue: #3fa9f5;
+  --blue-d: #1f72c0;
+  --gold: #ffc83d;
+  --gold-d: #d98a14;
+  --orange: #ff8a2a;
+  --orange-d: #c85a10;
+  --red: #ff5a4a;
+  --red-d: #c32e24;
+  --purple: #9b6af0;
+  --purple-d: #6a3fc0;
+  --teal: #2fc6e0;
+  --teal-d: #1686a8;
+  --pink: #ff6aa0;
+  --pink-d: #c83a78;
+  --gray: #bdb2b8;
+  --gray-d: #8a7f88;
+  --r-common: #a9b4bb;
+  --r-uncommon: #5cc45a;
+  --r-rare: #3e9bf0;
+  --r-epic: #a35bea;
+  --r-legendary: #ffaa2b;
+  --r-mythic: #ff4f7b;
+  --r-ancient: #2fd6b8;
+  --paper-tex: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .55 0 0 0 0 .42 0 0 0 0 .3 0 0 0 .09 0'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+html,
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #9fd8f5;
+  touch-action: none;
+  overscroll-behavior: none;
+}
+html {
+  font-size: var(--root, 16px);
+}
+body {
+  font-family: 'Nunito', system-ui, sans-serif;
+  font-weight: 800;
+  color: var(--text);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+canvas#game {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  outline: none;
+}
+#ui {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+#ui > * {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+#ui .pe,
+#ui button,
+#ui .clickable {
+  pointer-events: auto;
+}
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+.ico {
+  display: block;
+  width: 1.6rem;
+  height: 1.6rem;
+  flex: none;
+  overflow: visible;
+}
+.display {
+  font-family: 'Lilita One', 'Titan One', system-ui, sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+/* White text with an ink outline and drop — the game's headline style */
+.ol {
+  color: #fff;
+  text-shadow:
+    0.12rem 0 0 var(--ink), -0.12rem 0 0 var(--ink), 0 0.12rem 0 var(--ink), 0 -0.12rem 0 var(--ink),
+    0.09rem 0.09rem 0 var(--ink), -0.09rem 0.09rem 0 var(--ink), 0.09rem -0.09rem 0 var(--ink), -0.09rem -0.09rem 0 var(--ink),
+    0 0.24rem 0 var(--ink);
+}
+.ol-s {
+  color: #fff;
+  text-shadow:
+    0.08rem 0 0 var(--ink), -0.08rem 0 0 var(--ink), 0 0.08rem 0 var(--ink), 0 -0.08rem 0 var(--ink),
+    0.06rem 0.06rem 0 var(--ink), -0.06rem 0.06rem 0 var(--ink), 0.06rem -0.06rem 0 var(--ink), -0.06rem -0.06rem 0 var(--ink),
+    0 0.14rem 0 var(--ink);
+}
+.hidden {
+  display: none !important;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.grow {
+  flex: 1;
+}
+.center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.muted {
+  color: var(--muted);
+}
+.small {
+  font-size: 0.85rem;
+}
+.tiny {
+  font-size: 0.72rem;
+}
+
+/* ------------------------------------------------------------------ BUTTONS */
+.btn {
+  --b: var(--green);
+  --bd: var(--green-d);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 2.9rem;
+  padding: 0.35rem 1.15rem 0.5rem;
+  font-family: 'Lilita One', 'Titan One', sans-serif;
+  font-size: 1.2rem;
+  line-height: 1;
+  color: #fff;
+  border: 0.19rem solid var(--ink);
+  border-radius: 1rem;
+  background: var(--b);
+  box-shadow:
+    inset 0 -0.38rem 0 var(--bd),
+    inset 0 0.24rem 0 rgba(255, 255, 255, 0.42),
+    0 0.3rem 0 var(--ink);
+  text-shadow:
+    0.08rem 0 0 var(--ink), -0.08rem 0 0 var(--ink), 0 0.08rem 0 var(--ink), 0 -0.08rem 0 var(--ink),
+    0.06rem 0.06rem 0 var(--ink), -0.06rem 0.06rem 0 var(--ink), 0.06rem -0.06rem 0 var(--ink), -0.06rem -0.06rem 0 var(--ink),
+    0 0.14rem 0 var(--ink);
+  transform: translateY(0);
+  transition: transform 0.07s ease-out, box-shadow 0.07s ease-out, filter 0.12s;
+  white-space: nowrap;
+  pointer-events: auto;
+}
+.btn .ico {
+  width: 1.5rem;
+  height: 1.5rem;
+  filter: drop-shadow(0 0.1rem 0 rgba(42, 26, 47, 0.35));
+}
+.btn:hover {
+  filter: brightness(1.07);
+}
+.btn:active,
+.btn.pressed {
+  transform: translateY(0.24rem);
+  box-shadow:
+    inset 0 -0.2rem 0 var(--bd),
+    inset 0 0.24rem 0 rgba(255, 255, 255, 0.42),
+    0 0.06rem 0 var(--ink);
+}
+.btn.blue { --b: var(--blue); --bd: var(--blue-d); }
+.btn.gold { --b: var(--gold); --bd: var(--gold-d); }
+.btn.orange { --b: var(--orange); --bd: var(--orange-d); }
+.btn.red { --b: var(--red); --bd: var(--red-d); }
+.btn.purple { --b: var(--purple); --bd: var(--purple-d); }
+.btn.teal { --b: var(--teal); --bd: var(--teal-d); }
+.btn.pink { --b: var(--pink); --bd: var(--pink-d); }
+.btn.paper { --b: var(--paper); --bd: var(--paper3); color: var(--text); text-shadow: none; }
+.btn.disabled,
+.btn:disabled {
+  --b: var(--gray);
+  --bd: var(--gray-d);
+  cursor: default;
+}
+.btn.disabled:active,
+.btn:disabled:active {
+  transform: none;
+  box-shadow:
+    inset 0 -0.38rem 0 var(--bd),
+    inset 0 0.24rem 0 rgba(255, 255, 255, 0.42),
+    0 0.3rem 0 var(--ink);
+}
+.btn.sm {
+  min-height: 2.3rem;
+  font-size: 1rem;
+  padding: 0.25rem 0.8rem 0.4rem;
+  border-radius: 0.8rem;
+}
+.btn.lg {
+  min-height: 3.5rem;
+  font-size: 1.5rem;
+  padding: 0.4rem 1.6rem 0.6rem;
+  border-radius: 1.2rem;
+}
+.btn.wide {
+  width: 100%;
+}
+.btn .cost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+.btn .cost .ico {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+.btn.round {
+  width: 3rem;
+  height: 3rem;
+  min-height: 0;
+  padding: 0;
+  border-radius: 50%;
+}
+.btn.round .ico {
+  width: 1.55rem;
+  height: 1.55rem;
+}
+.btn .ad-tag {
+  position: absolute;
+  top: -0.6rem;
+  right: -0.5rem;
+  background: var(--purple);
+  border: 0.15rem solid var(--ink);
+  border-radius: 0.5rem;
+  padding: 0.05rem 0.3rem;
+  font-size: 0.7rem;
+}
+.shake-no {
+  animation: shakeNo 0.35s;
+}
+@keyframes shakeNo {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-0.4rem); }
+  40% { transform: translateX(0.4rem); }
+  60% { transform: translateX(-0.25rem); }
+  80% { transform: translateX(0.25rem); }
+}
+
+/* close button (round red X) */
+.x-btn {
+  position: absolute;
+  top: -0.9rem;
+  right: -0.9rem;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: var(--red);
+  border: 0.19rem solid var(--ink);
+  box-shadow: inset 0 -0.3rem 0 var(--red-d), inset 0 0.2rem 0 rgba(255, 255, 255, 0.4), 0 0.25rem 0 var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  transition: transform 0.07s;
+}
+.x-btn .ico {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+.x-btn:active {
+  transform: translateY(0.2rem);
+  box-shadow: inset 0 -0.15rem 0 var(--red-d), 0 0.05rem 0 var(--ink);
+}
+
+/* ------------------------------------------------------------------ PANELS */
+.panel {
+  position: relative;
+  background-color: var(--paper);
+  background-image: var(--paper-tex);
+  border: 0.19rem solid var(--ink);
+  border-radius: 1.5rem;
+  box-shadow:
+    inset 0 0.25rem 0 #fffdf6,
+    inset 0 -0.45rem 0 var(--paper2),
+    0 0.5rem 0 rgba(42, 26, 47, 0.5);
+  pointer-events: auto;
+}
+.ribbon {
+  --rb: #ff7a3a;
+  --rbd: #c8501a;
+  position: absolute;
+  left: 50%;
+  top: -1.55rem;
+  transform: translateX(-50%);
+  min-width: 55%;
+  max-width: 92%;
+  padding: 0.35rem 2.2rem 0.55rem;
+  background: var(--rb);
+  border: 0.19rem solid var(--ink);
+  border-radius: 0.8rem;
+  box-shadow: inset 0 -0.32rem 0 var(--rbd), inset 0 0.22rem 0 rgba(255, 255, 255, 0.35), 0 0.3rem 0 var(--ink);
+  text-align: center;
+  font-family: 'Lilita One', sans-serif;
+  font-size: 1.65rem;
+  line-height: 1.1;
+  white-space: nowrap;
+  z-index: 3;
+}
+.ribbon::before,
+.ribbon::after {
+  content: '';
+  position: absolute;
+  top: 0.55rem;
+  width: 1.6rem;
+  height: 100%;
+  background: var(--rbd);
+  border: 0.19rem solid var(--ink);
+  z-index: -1;
+}
+.ribbon::before {
+  left: -1.2rem;
+  border-radius: 0.5rem 0 0 0.5rem;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 35% 50%);
+}
+.ribbon::after {
+  right: -1.2rem;
+  border-radius: 0 0.5rem 0.5rem 0;
+  clip-path: polygon(0 0, 100% 0, 65% 50%, 100% 100%, 0 100%);
+}
+.ribbon.blue { --rb: var(--blue); --rbd: var(--blue-d); }
+.ribbon.green { --rb: var(--green); --rbd: var(--green-d); }
+.ribbon.purple { --rb: var(--purple); --rbd: var(--purple-d); }
+.ribbon.pink { --rb: var(--pink); --rbd: var(--pink-d); }
+.ribbon.gold { --rb: var(--gold); --rbd: var(--gold-d); }
+.ribbon.teal { --rb: var(--teal); --rbd: var(--teal-d); }
+.well {
+  background: var(--paper2);
+  border-radius: 1rem;
+  box-shadow: inset 0 0.22rem 0 rgba(42, 26, 47, 0.12), inset 0 -0.1rem 0 #fff8e8;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.55rem 0.2rem;
+  border-radius: 1rem;
+  border: 0.15rem solid var(--ink);
+  background: var(--paper);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+.chip .ico {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+.rar-chip {
+  font-family: 'Lilita One', sans-serif;
+  font-weight: 400;
+  color: #fff;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.12rem 0.55rem 0.2rem;
+  border-radius: 0.6rem;
+  border: 0.15rem solid var(--ink);
+  box-shadow: inset 0 -0.18rem 0 rgba(0, 0, 0, 0.2);
+  text-shadow: 0 0.1rem 0 rgba(42, 26, 47, 0.7);
+}
+
+/* progress bars */
+.bar {
+  position: relative;
+  height: 1.1rem;
+  border-radius: 1rem;
+  background: #4a3a52;
+  border: 0.16rem solid var(--ink);
+  overflow: hidden;
+  box-shadow: inset 0 0.18rem 0 rgba(0, 0, 0, 0.3);
+}
+.bar > i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--k, 0%);
+  background: var(--bc, var(--green));
+  border-radius: 1rem;
+  box-shadow: inset 0 -0.2rem 0 rgba(0, 0, 0, 0.18), inset 0 0.16rem 0 rgba(255, 255, 255, 0.45);
+  transition: width 0.35s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+.bar > span {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Lilita One', sans-serif;
+  font-size: 0.8rem;
+  color: #fff;
+  text-shadow: 0 0.08rem 0 var(--ink), 0.06rem 0 0 var(--ink), -0.06rem 0 0 var(--ink);
+}
+
+/* badges */
+.badge {
+  position: absolute;
+  top: -0.35rem;
+  right: -0.35rem;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 0.3rem;
+  border-radius: 1rem;
+  background: var(--red);
+  border: 0.15rem solid var(--ink);
+  font-family: 'Lilita One', sans-serif;
+  font-size: 0.78rem;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 4;
+  animation: pop 0.3s;
+}
+.badge.dot {
+  min-width: 1rem;
+  width: 1rem;
+  height: 1rem;
+  padding: 0;
+}
+@keyframes pop {
+  0% { transform: scale(0); }
+  70% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+.pulse {
+  animation: pulse 1.2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+.bob {
+  animation: bob 1.6s ease-in-out infinite;
+}
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-0.3rem); }
+}
+.spin-slow {
+  animation: spin 8s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

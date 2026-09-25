@@ -1,0 +1,40 @@
+<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;height:100%;overflow:hidden}canvas{display:block;width:100%;height:100%}.lbl{position:absolute;font:700 12px sans-serif;color:#2b1b2e;transform:translate(-50%,0)}</style></head>
+<body><canvas id="c"></canvas><div id="labels"></div><script type="module">
+import * as THREE from 'three';
+import { Engine } from '../src/render/engine.js';
+import { buildModel } from '../src/render/buildings/models.js';
+import { buildCropPlants } from '../src/render/buildings/models.js';
+import { CROPS } from '../src/data/crops.js';
+import { updateGlobalUniforms } from '../src/render/materials.js';
+const params = new URLSearchParams(location.search);
+const engine = new Engine(document.getElementById('c'));
+const scene = new THREE.Scene(); scene.background = new THREE.Color('#bfe3f7');
+const cam = new THREE.PerspectiveCamera(30, 1, 0.1, 400);
+scene.add(new THREE.HemisphereLight('#d9ecff', '#7d6b4a', 1.05));
+const sun = new THREE.DirectionalLight('#fff0d6', 3.1); sun.position.set(-14, 26, 12); sun.castShadow = true; sun.shadow.mapSize.set(2048,2048);
+Object.assign(sun.shadow.camera, { left: -20, right: 20, top: 20, bottom: -20, near: 1, far: 80 }); scene.add(sun);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshLambertMaterial({ color: '#86c95a' })); ground.rotation.x = -Math.PI/2; ground.receiveShadow = true; scene.add(ground);
+const set = params.get('set') || 'hab';
+let types;
+if (set === 'hab') types = ['fire','nature','water','earth','electric','ice','light','dark','metal','magic','ancient','void','celestial'].map(e=>'hab_'+e);
+else if (set === 'core') types = ['farm','hatchery','breeding','gold_storage','food_storage','academy','evolution_temple','challenge_tower','rune_forge','event_portal','relic_workshop','ancient_shrine'];
+else types = ['deco_flowerbed','deco_lantern','deco_bench','deco_statue','deco_fountain','deco_banner','deco_mushrooms','deco_crystal','deco_arch','deco_tree'];
+const level = +(params.get('level')||1);
+const cols = 5, sp = 4;
+const anims = [];
+const labels = document.getElementById('labels');
+types.forEach((t, i) => {
+  const g = buildModel(t, level);
+  const x = (i % cols - (cols-1)/2) * sp, z = Math.floor(i / cols) * sp;
+  g.position.set(x, 0, z); scene.add(g);
+  if (g.userData.animate) anims.push(g.userData.animate);
+  const el = document.createElement('div'); el.className='lbl'; el.textContent=t; labels.appendChild(el); g.userData.lbl = el;
+  if (t === 'farm') { const c = buildCropPlants(CROPS[+(params.get('crop')||0)], 1); c.position.copy(g.position); scene.add(c); }
+});
+const rows = Math.ceil(types.length/cols);
+cam.position.set(12, 18, (rows-1)*sp/2 + 22); cam.lookAt(0, 0, (rows-1)*sp/2);
+engine.setWorld({ scene, camera: cam, update(dt, t){ updateGlobalUniforms(dt); anims.forEach(a=>a(t,dt));
+  scene.children.forEach(o=>{ if(o.userData.lbl){ const p=engine.project(o.position.clone().add(new THREE.Vector3(0,-0.3,1.9)), cam); o.userData.lbl.style.left=p.x+'px'; o.userData.lbl.style.top=p.y+'px'; }}); },
+  resize(w,h){ cam.aspect=w/h; cam.updateProjectionMatrix(); } });
+engine.start(); setTimeout(()=>window.__ready=true, 1000);
+</script></body></html>
