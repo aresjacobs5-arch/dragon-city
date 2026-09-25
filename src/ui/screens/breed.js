@@ -157,7 +157,8 @@ export function openBreed(A) {
         outcomes.appendChild(h('div.outcome', null, h('div.pic', { style: { '--rc': R.color } }, img, known ? null : h('div.q', null, '?')), h('div.nm', { style: { color: R.dark } }, known ? def.name : `??? ${R.name}`), h('div.pc', null, `${o.p < 0.01 ? '<1' : Math.round(o.p * 100)}%`)));
       }
       const times = outs.map((o) => breedTime(o.sp));
-      tl.textContent = `${fmtTime(Math.min(...times))} – ${fmtTime(Math.max(...times))}`;
+      const lo = fmtTime(Math.min(...times)), hi = fmtTime(Math.max(...times));
+      tl.textContent = lo === hi ? lo : `${lo} – ${hi}`;
       breedBtn.classList.remove('disabled');
     } else if (!bs) {
       outcomes.appendChild(h('div.small.muted', { style: { padding: '0.8rem' } }, 'Choose two monsters to see what could hatch. Different elements make new hybrids!'));
