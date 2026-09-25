@@ -59,7 +59,7 @@ export function openShop(A, tab = 'habitats') {
     const card = h(`div.scard${locked ? '.locked' : ''}`, null,
       h('div.art', { style: { '--sc': color } }, img, def.element ? h('div', { style: { position: 'absolute', left: '0.4rem', top: '0.4rem' } }, icon(`el_${def.element}`)) : null),
       h('div.nm', null, def.name),
-      h('div.meta', null, icon('timer'), fmtTime(buildTimeFor(def.id)), def.xp ? icon('xp') : null, def.xp ? `+${def.xp}` : null),
+      h('div.meta', null, icon('timer'), fmtTime(buildTimeFor(def.id)), def.xp ? icon('xp') : null, def.xp ? `+${def.xp}` : null, def.category === 'decoration' ? h('span', null, icon('gold'), '+1%') : null),
     );
     if (def.id === 'farm') card.appendChild(h('div.count.chip', null, `${countOf('farm')}/${farmLimit(lvl())}`));
     if (locked) card.appendChild(h('div.lockover', null, icon('lock'), h('div.ol.display', { style: { fontSize: '1.2rem' } }, `Level ${block.level}`)));

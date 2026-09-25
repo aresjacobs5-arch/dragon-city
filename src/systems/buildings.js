@@ -270,6 +270,8 @@ export function placeBuilding(type, islandId, x, z, { free = false, instant = fa
 
 function onConstructed(b, instant = false) {
   const def = BUILDINGS[b.type];
+  // charm changes habitat income: bank what was earned at the old rate first
+  if (def.category === 'decoration') snapshotAllHabitats();
   b.state = 'ready';
   b.until = 0;
   b.goldTs = G.now();
@@ -297,6 +299,7 @@ export function moveBuilding(b, islandId, x, z) {
 export function sellBuilding(b) {
   const def = BUILDINGS[b.type];
   if (def.category !== 'decoration') return false;
+  snapshotAllHabitats();
   const refund = Math.round((def.cost.gold || 0) * 0.25);
   G.state.buildings.splice(G.state.buildings.indexOf(b), 1);
   add('gold', refund, { source: 'sell' });
@@ -387,9 +390,15 @@ export function habitatMonsters(b) {
 export function habitatCapacity(b) {
   return habitatLevelDef(b).capacity;
 }
+// Decorations make the island charming: +1% habitat gold each (max +25%).
+export function charmBonus() {
+  const n = G.state.buildings.filter((x) => BUILDINGS[x.type].category === 'decoration' && x.state !== 'building').length;
+  return Math.min(0.25, n * 0.01);
+}
+
 export function habitatRate(b) {
   if (b.state === 'building') return 0;
-  return habitatMonsters(b).reduce((s, m) => s + goldRate(m), 0);
+  return habitatMonsters(b).reduce((s, m) => s + goldRate(m), 0) * (1 + charmBonus());
 }
 export function habitatCap(b) {
   return habitatLevelDef(b).goldCap;

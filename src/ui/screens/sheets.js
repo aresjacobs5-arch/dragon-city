@@ -6,7 +6,7 @@ import { CROPS, CROP_BY_ID } from '../../data/crops.js';
 import { RARITIES } from '../../data/rarities.js';
 import {
   isHabitat, habitatGold, habitatCap, habitatRate, habitatMonsters, habitatCapacity, nextLevelDef, upgradeBlocker,
-  remainingSec, finishNowCost, cropReady, farmYield, farms, obstaclesFor, readyBuilding,
+  remainingSec, finishNowCost, cropReady, farmYield, farms, obstaclesFor, readyBuilding, charmBonus,
 } from '../../systems/buildings.js';
 import { species, monsterName, stageOf, sortMonsters } from '../../systems/monsters.js';
 import { isUnlocked } from '../../systems/player.js';
@@ -212,7 +212,7 @@ export function openBuildingSheet(b, A) {
     } else if (b.type === 'ancient_shrine') {
       actions.appendChild(actionBtn('Summon', 'sparkle', 'teal', () => A.shrine()));
     } else if (BUILDINGS[b.type].category === 'decoration') {
-      stats.appendChild(h('div.stat.well', null, icon('deco'), 'Makes your island lovelier'));
+      stats.appendChild(h('div.stat.well', null, icon('deco'), 'Island charm', h('b', null, `+${Math.round(charmBonus() * 100)}%`), h('span.muted.small', null, 'habitat gold')));
       actions.appendChild(actionBtn('Sell', null, 'red', () => A.sellBuilding(b)));
     }
     if (b.state !== 'upgrading') {
