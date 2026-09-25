@@ -118,7 +118,10 @@ export function openMonsterDetail(m, A, { tab = 'info' } = {}) {
   ms.bindDrag(vp);
   const viewport = { el: vp, scene: ms.scene, camera: ms.camera, update: (dt) => ms.update(dt) };
 
-  const nameEl = h('div.nm.display.ol', null, monsterName(m));
+  // Give your monster a name of its own
+  const nameText = h('span', null, monsterName(m));
+  const renameBtn = h('button.rename-btn', { 'aria-label': 'Rename', onclick: () => openRename(m, A, () => (nameText.textContent = monsterName(m))) }, icon('pencil'));
+  const nameEl = h('div.nm.display.ol', null, nameText, renameBtn);
   stageBox.appendChild(h('div.top', null, h('div.col', { style: { gap: '0.3rem' } }, nameEl, h('div.row', null, rarityChip(def.rarity), h('span.chip', null, icon('crown'), ROLES[def.role].label))), h('div.grow'), elIcons(def.elements)));
   const lvNum = h('div.lvnum.display.ol', null, '');
   const lvBar = bar(0, '#ffd84a', '');
@@ -289,7 +292,7 @@ export function openMonsterDetail(m, A, { tab = 'info' } = {}) {
   scr.refresh = () => {
     renderLevel();
     renderContent();
-    nameEl.textContent = monsterName(m);
+    nameText.textContent = monsterName(m);
   };
   UI.open(scr);
   return scr;
@@ -308,3 +311,40 @@ function blend(a, b, k) {
   return `#${((1 << 24) + (Math.round(r) << 16) + (Math.round(g) << 8) + Math.round(bl)).toString(16).slice(1)}`;
 }
 export { blend };
+
+// ---------------------------------------------------------------- rename
+export function openRename(m, A, onDone) {
+  const def = species(m.sp);
+  const input = h('input.name-input', { type: 'text', maxLength: 14, value: m.nick || '', placeholder: def.name, autocomplete: 'off', spellcheck: 'false' });
+  const scr = UI.panel({
+    key: 'rename',
+    title: 'Name your monster',
+    ribbon: 'blue',
+    kind: 'modal',
+    hideHud: false,
+    dim: 0.5,
+    content: [
+      h('div.dlg-text.small', null, `Every ${def.name} is one of a kind. What will you call this one?`),
+      input,
+      h('div.dlg-actions', null,
+        m.nick ? h('button.btn.red', { onclick: () => save('') }, 'Reset') : null,
+        h('button.btn.green', { onclick: () => save(input.value) }, icon('check'), 'Save')),
+    ],
+  });
+  const save = (raw) => {
+    const clean = String(raw || '').replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 14);
+    m.nick = clean && clean !== def.name ? clean : null;
+    G.markDirty();
+    A.sfx('pop');
+    UI.close(scr);
+    onDone && onDone();
+    const list = UI.find('monsters');
+    if (list && list.refresh) list.refresh();
+  };
+  input.addEventListener('keydown', (e) => {
+    e.stopPropagation();
+    if (e.key === 'Enter') save(input.value);
+  });
+  UI.open(scr);
+  setTimeout(() => input.focus(), 60);
+}

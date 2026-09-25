@@ -24,7 +24,7 @@ module.exports = async function (page, api) {
   };
   let last = '';
   let idle = 0;
-  for (let i = 0; i < 160; i++) {
+  for (let i = 0; i < 320; i++) {
     const s = await step();
     if (!s) break;
     const info = await follow();

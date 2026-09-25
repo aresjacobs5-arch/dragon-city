@@ -70,10 +70,12 @@ export function getStage(w, s) {
   if (type === 'boss') {
     enemies.push({ species: world.boss, level: world.levels[1] + 2, boss: true });
   } else if (type === 'battle' || type === 'elite' || type === 'challenge') {
-    for (let i = 0; i < count; i++) {
+    // challenge rules already add difficulty: slightly weaker, and fewer in the first world
+    const n = type === 'challenge' && w === 1 ? 2 : count;
+    for (let i = 0; i < n; i++) {
       const sp = pickWeighted();
       const elite = type === 'elite' && i === 0;
-      enemies.push({ species: sp.id, level: lvl + (elite ? 2 : rng.int(-1, 0)), elite });
+      enemies.push({ species: sp.id, level: lvl + (elite ? 2 : rng.int(-1, 0)) - (type === 'challenge' ? 1 : 0), elite });
     }
     enemies.forEach((e) => (e.level = Math.max(1, e.level)));
     if (type === 'challenge') rule = CHALLENGE_RULES[(w + s) % CHALLENGE_RULES.length];

@@ -97,6 +97,9 @@ export const UI = {
     }
     this.layers.hud.classList.toggle('away', hideHud || G.mode !== 'island');
     this.layers.markers.style.display = this.stack.length && dim > 0.2 ? 'none' : '';
+    // map / battle overlays step back while a dimmed window is open
+    const mh = this.root.querySelector('#modehud');
+    if (mh) mh.classList.toggle('behind', this.stack.length > 0 && dim > 0.2);
   },
   update(dt) {
     for (const s of this.stack) if (s.update) s.update(dt);

@@ -4,6 +4,15 @@
   inset: 0;
   pointer-events: none;
 }
+#modehud {
+  transition: opacity 0.2s;
+}
+#modehud.behind {
+  opacity: 0;
+}
+#modehud.behind * {
+  pointer-events: none !important;
+}
 .node-layer .node-lbl {
   left: 0;
   top: 0;
