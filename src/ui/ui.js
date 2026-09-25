@@ -96,7 +96,7 @@ export const UI = {
       G.engine.worldVisible = !hideWorld;
     }
     this.layers.hud.classList.toggle('away', hideHud || G.mode !== 'island');
-    this.layers.markers.style.display = this.stack.length && dim > 0.2 ? 'none' : '';
+    this.layers.markers.style.display = (this.stack.length && dim > 0.2) || G.mode !== 'island' ? 'none' : '';
     // map / battle overlays step back while a dimmed window is open
     const mh = this.root.querySelector('#modehud');
     if (mh) mh.classList.toggle('behind', this.stack.length > 0 && dim > 0.2);
