@@ -154,6 +154,21 @@ export class Arena {
     if (!env) {
       env = this._buildEnv(name);
       this.envCache.set(name, env);
+      // keep GPU memory bounded: at most three arenas stay built
+      if (this.envCache.size > 3) {
+        for (const [k, e] of this.envCache) {
+          if (k === name) continue;
+          e.group.traverse((o) => {
+            if (o.isMesh && o.geometry) o.geometry.dispose();
+          });
+          this.envCache.delete(k);
+          break;
+        }
+      }
+    } else {
+      // refresh LRU order
+      this.envCache.delete(name);
+      this.envCache.set(name, env);
     }
     this.env = env;
     this.themeName = name;

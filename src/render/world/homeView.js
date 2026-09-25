@@ -181,6 +181,15 @@ export class HomeView extends HomeWorld {
       c.scale.set(1.3, 0.62, 1.1);
       t.group.add(c);
     }
+    // a cloud bank hugging the cliffs so undiscovered islands read as soft, not dark
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2 + rng.range(-0.15, 0.15);
+      const r = def.radius * rng.range(0.78, 1.02);
+      const c = new THREE.Mesh(Geo.ico(rng.range(2.6, 4.2), 2), mistMat);
+      c.position.set(Math.cos(a) * r, rng.range(-5.5, -1.2), Math.sin(a) * r);
+      c.scale.set(1.35, 0.72, 1.2);
+      t.group.add(c);
+    }
     t.group.userData.lockedIsland = def.id;
     this.scene.add(t.group);
     this.locked.set(def.id, t.group);
