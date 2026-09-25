@@ -128,21 +128,15 @@ export class Engine {
 
   render() {
     const r = this.renderer;
-    r.setScissorTest(false);
-    r.setViewport(0, 0, this.width, this.height);
-    r.clear(true, true, false);
-    if (this.world && this.worldVisible) {
-      r.render(this.world.scene, this.world.camera);
-      this.lastTris = r.info.render.triangles;
-    }
-    if (this.dim > 0.01) {
-      this.dimMat.opacity = this.dim;
-      r.clearDepth();
-      r.render(this.dimScene, this.dimCam);
-    }
+    // 1) DOM-anchored previews first: render each into its screen region and
+    //    copy it into the element's own 2D canvas. The world pass below then
+    //    paints over those pixels, so previews only ever appear in the DOM.
     if (this.viewports.size) {
       for (const vp of this.viewports) {
         if (!vp.el || !vp.scene || !vp.camera || vp.hidden) continue;
+        if (!vp.el.isConnected) continue;
+        const scr = vp.el.closest('.scr');
+        if (scr && scr.style.visibility === 'hidden') continue;
         const rect = vp.el.getBoundingClientRect();
         if (rect.width < 2 || rect.height < 2) continue;
         if (rect.right < 0 || rect.bottom < 0 || rect.left > this.width || rect.top > this.height) continue;
@@ -156,17 +150,25 @@ export class Engine {
           cam.aspect = aspect;
           cam.updateProjectionMatrix();
         }
-        if (vp.clearColor !== undefined && vp.clearColor !== null) {
-          r.setClearColor(vp.clearColor, 1);
-          r.clear(true, true, false);
-          r.setClearColor(0x9fd8f5, 1);
-        } else {
-          r.clearDepth();
-        }
+        r.setClearColor(vp.clearColor ?? 0xcfe9ff, 1);
+        r.clear(true, true, false);
         r.render(vp.scene, cam);
         this._blit(vp, rect);
       }
-      r.setScissorTest(false);
+      r.setClearColor(0x9fd8f5, 1);
+    }
+    // 2) the world, full screen
+    r.setScissorTest(false);
+    r.setViewport(0, 0, this.width, this.height);
+    r.clear(true, true, false);
+    if (this.world && this.worldVisible) {
+      r.render(this.world.scene, this.world.camera);
+      this.lastTris = r.info.render.triangles;
+    }
+    if (this.dim > 0.01) {
+      this.dimMat.opacity = this.dim;
+      r.clearDepth();
+      r.render(this.dimScene, this.dimCam);
     }
   }
 

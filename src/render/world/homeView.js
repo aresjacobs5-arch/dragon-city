@@ -120,20 +120,8 @@ class MonsterActor {
       this.lookT -= dt;
       if (this.lookT <= 0) an.lookAt(0, 0);
     }
-    // ambient emitters (embers from flames, etc.)
-    const em = this.view.template.emitters;
-    if (em && em.length) {
-      this.emitT -= dt;
-      if (this.emitT <= 0) {
-        this.emitT = 0.35 + Math.random() * 0.4;
-        const e = em[(Math.random() * em.length) | 0];
-        const bone = this.view.bones[e.bone];
-        if (bone) {
-          bone.getWorldPosition(_v2);
-          this.home.particles.emit(e.type, _v2, { count: 1, spread: 0.05, size: 0.8 });
-        }
-      }
-    }
+    // ambient emitters (embers from flames, final-form auras)
+    this.view.ambient(this.home.particles, dt);
     this.view.update(dt);
   }
   dispose() {

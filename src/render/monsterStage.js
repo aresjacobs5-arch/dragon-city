@@ -124,7 +124,10 @@ export class MonsterStage {
       this.yaw += Math.sin(this.time * 0.4) * 0.0015;
     }
     this.pivot.rotation.y = this.yaw;
-    if (this.view) this.view.update(dt);
+    if (this.view) {
+      this.view.update(dt);
+      this.view.ambient(this.particles, dt);
+    }
     if (this.egg) this.egg.rotation.z = Math.sin(this.time * 2.2) * 0.06;
     this.particles.setScale(400, this.camera.fov);
     this.particles.update(dt);

@@ -194,7 +194,6 @@ export function openMonsterDetail(m, A, { tab = 'info' } = {}) {
         ms.setMonster(def, ns);
         ms.play('roar');
         ms.burst('confetti', 40);
-        UI.toast(`${monsterName(m)} evolved!`, { icon: 'sparkle', kind: 'good' });
         A.portraitInvalidate && A.portraitInvalidate(m.sp);
       }, 250);
     }

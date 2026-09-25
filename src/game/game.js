@@ -42,6 +42,7 @@ import { Campaign } from './campaignMode.js';
 export const Game = {
   sessionStart: performance.now(),
   levelQueue: [],
+  evoQueue: [],
   busy: 0, // >0 while a blocking cinematic plays
 
   async boot(progress) {
@@ -183,9 +184,76 @@ export const Game = {
     if (this._questT <= 0) {
       this._questT = 0.5;
       Q.checkCompletions();
+      this._maybeShowEvolution();
       this._maybeShowLevelUp();
     }
     if (G.mode === 'battle' || G.mode === 'map') Campaign.update(dt);
+  },
+
+  _maybeShowEvolution() {
+    if (!this.evoQueue.length || this.busy || G.mode !== 'island') return;
+    if (UI.stack.some((s) => ['levelup', 'rewards', 'reveal', 'evolve', 'confirm'].includes(s.key))) return;
+    const e = this.evoQueue.shift();
+    this.evoQueue = this.evoQueue.filter((x) => x.m !== e.m);
+    this.celebrateEvolution(e.m, e.fromStage, Math.max(e.toStage, stageForLevel(e.m.lvl)));
+  },
+
+  async celebrateEvolution(m, fromStage, toStage) {
+    const def = M.species(m.sp);
+    this.busy++;
+    const sc = this.showcase;
+    const ui = h('div.reveal-ui');
+    const top = h('div.top');
+    const bottom = h('div.bottom');
+    ui.append(top, bottom);
+    const scr = { key: 'evolve', dim: 0, hideHud: true, solo: true, el: h('div.scr'), escClose: false };
+    scr.el.appendChild(ui);
+    scr.el.addEventListener('pointerdown', () => sc.skip());
+    await cloudTransition(() => {
+      G.mode = 'reveal';
+      G.world.camCtl.enabled = false;
+      G.engine.setWorld(sc);
+      UI.open(scr);
+      top.appendChild(h('div.big-title', { style: { fontSize: '2.4rem' } }, `${M.monsterName(m)} is evolving!`));
+    }, { sound: () => Audio.play('whoosh') });
+    Audio.play('charge');
+    sc.playEvolve(def, fromStage, toStage, {
+      sfx: (n) => Audio.play(n),
+      onFlash: () => {
+        Audio.play('burst');
+        Audio.jingle('levelup');
+        SDK.happytime();
+      },
+      onReveal: () => {
+        Audio.play('roar', { pitch: 120 });
+        top.innerHTML = '';
+        top.append(h('div.big-title.gold', { style: { fontSize: '3rem' } }, 'EVOLVED!'), h('div.nm.display.ol', null, M.monsterName(m)), h('div.rar.rar-chip', { style: { background: RARITIES[def.rarity].color } }, toStage === 2 ? 'Final form' : 'Grown up'));
+        bottom.append(h('button.btn.lg.green', { onclick: () => finish() }, icon('check'), 'Awesome!'), h('div.small.ol-s', null, 'Evolved monsters are stronger and earn more gold.'));
+        scr.el.onpointerdown = null;
+      },
+    });
+    const self = this;
+    let done = false;
+    async function finish() {
+      if (done) return;
+      done = true;
+      await cloudTransition(() => {
+        UI.close(scr);
+        G.mode = 'island';
+        G.world.camCtl.enabled = true;
+        G.engine.setWorld(G.world);
+        sc.clear();
+        UI._sync();
+      });
+      self.busy--;
+      const a = G.world.actorFor(m.id);
+      if (a) {
+        a.view.animator.play('happy');
+        G.world.particles.emit('sparkle', a.view.group.position.clone().setY(1), { count: 24, spread: 0.6 });
+      }
+      const d = UI.find('mdetail');
+      if (d && d.refresh) d.refresh();
+    }
   },
 
   _maybeShowLevelUp() {
@@ -322,8 +390,12 @@ export const Game = {
     bus.on('building:removed', () => G.world.syncAll());
     bus.on('monster:placed', () => G.world.syncMonsters());
     bus.on('monster:removed', () => G.world.syncMonsters());
-    bus.on('monster:levelup', ({ m, evolved }) => {
-      if (evolved) G.world.syncMonsters();
+    bus.on('monster:levelup', ({ m, evolved, from, to }) => {
+      if (!evolved) return;
+      G.world.syncMonsters();
+      const fromStage = from >= 20 ? 2 : from >= 10 ? 1 : 0;
+      const toStage = stageForLevel(to);
+      if (toStage > fromStage) this.evoQueue.push({ m, fromStage, toStage });
     });
     bus.on('obstacle:cleared', ({ o, gems }) => {
       G.world.removeObstacleAnimated(o.id);
@@ -1030,7 +1102,7 @@ Game.revealMonster = async function (m) {
   const top = h('div.top');
   const bottom = h('div.bottom');
   ui.append(top, bottom);
-  const scr = { key: 'reveal', dim: 0, hideHud: true, el: h('div.scr'), escClose: false };
+  const scr = { key: 'reveal', dim: 0, hideHud: true, solo: true, el: h('div.scr'), escClose: false };
   scr.el.appendChild(ui);
   scr.el.addEventListener('pointerdown', () => sc.skip());
   const prevMode = G.mode;

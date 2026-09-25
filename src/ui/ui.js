@@ -83,6 +83,12 @@ export const UI = {
     return this.stack.find((s) => s.key === key) || null;
   },
   _sync() {
+    // a "solo" screen (cinematics) hides every window underneath it
+    let soloIdx = -1;
+    this.stack.forEach((s, i) => {
+      if (s.solo) soloIdx = i;
+    });
+    this.stack.forEach((s, i) => (s.el.style.visibility = i < soloIdx ? 'hidden' : ''));
     let dim = 0;
     let hideHud = false;
     let hideWorld = false;

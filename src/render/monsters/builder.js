@@ -11,6 +11,24 @@ export const STAGE_SCALE = [0.78, 0.95, 1.12];
 export const RARITY_SIZE = { common: 1, uncommon: 1.04, rare: 1.08, epic: 1.16, legendary: 1.26, mythic: 1.32, ancient: 1.38 };
 const cache = new Map();
 
+// Final-form monsters carry a gentle aura of their element.
+const AURA = {
+  fire: { type: 'ember', color: null },
+  nature: { type: 'leaf', color: null },
+  water: { type: 'bubble', color: null },
+  earth: { type: 'dust', color: '#e6c29a', size: 0.5 },
+  electric: { type: 'bolt', color: null, size: 0.5 },
+  ice: { type: 'snow', color: null },
+  light: { type: 'sparkle', color: '#fff3b0' },
+  dark: { type: 'sparkle', color: '#b48cff' },
+  metal: { type: 'sparkle', color: '#e1e8f2' },
+  magic: { type: 'magic', color: null },
+  ancient: { type: 'magic', color: '#7ff0d8' },
+  void: { type: 'sparkle', color: '#9a86e0' },
+  celestial: { type: 'star', color: '#dfe8ff', size: 0.6 },
+};
+const _av = new THREE.Vector3();
+
 export function stageForLevel(level) {
   return level >= 20 ? 2 : level >= 10 ? 1 : 0;
 }
@@ -28,12 +46,13 @@ export function getTemplate(species, stage = 0) {
   const st = { s: stage, g: stage / 2 };
   const fn = ARCHETYPES[model.arch] || ARCHETYPES.quad;
   const info = fn(rb, model, st);
-  const { geometry, bones } = rb.build();
+  const { geometry, bones, emitters } = rb.build();
   const bb = geometry.boundingBox;
   t = {
     key,
     geometry,
     bones,
+    emitters: emitters || [],
     info,
     arch: model.arch,
     scale: (model.size || 1) * STAGE_SCALE[stage] * (RARITY_SIZE[species.rarity] || 1) * (species.boss ? 2.2 : 1),
@@ -85,6 +104,41 @@ export class MonsterView {
 
   get height() {
     return this.worldHeight;
+  }
+
+  // Ambient particles: bone emitters (flame tips...) and the final-form aura.
+  ambient(particles, dt) {
+    if (!particles || !this.group.visible) return;
+    const em = this.template.emitters;
+    if (em && em.length) {
+      this._emT = (this._emT ?? Math.random() * 0.4) - dt;
+      if (this._emT <= 0) {
+        this._emT = 0.35 + Math.random() * 0.4;
+        const e = em[(Math.random() * em.length) | 0];
+        const bone = this.bones[e.bone];
+        if (bone) {
+          bone.getWorldPosition(_av);
+          particles.emit(e.type, _av, { count: 1, spread: 0.05, size: 0.8 * this.group.scale.x });
+        }
+      }
+    }
+    if (this.stage >= 2 && this.species.elements) {
+      this._auT = (this._auT ?? Math.random()) - dt;
+      if (this._auT <= 0) {
+        this._auT = 0.28 + Math.random() * 0.3;
+        const el = this.species.elements[(Math.random() * this.species.elements.length) | 0];
+        const a = AURA[el];
+        if (a) {
+          const tpl = this.template;
+          const s = tpl.scale * this.group.scale.x;
+          const ang = Math.random() * Math.PI * 2;
+          const r = (0.3 + Math.random() * 0.5) * tpl.radius * s;
+          _av.set(Math.cos(ang) * r, (0.15 + Math.random() * 0.85) * tpl.height * s, Math.sin(ang) * r);
+          _av.applyQuaternion(this.group.quaternion).add(this.group.getWorldPosition(new THREE.Vector3()));
+          particles.emit(a.type, _av, { count: 1, spread: 0.05, color: a.color, size: (a.size || 0.7) * Math.max(0.8, s), speed: 0.4 });
+        }
+      }
+    }
   }
 
   flash(color = 0xffffff, strength = 0.85) {

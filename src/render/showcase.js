@@ -93,6 +93,11 @@ export class Showcase {
   }
 
   clear() {
+    if (this.old) {
+      this.scene.remove(this.old.group);
+      this.old.dispose();
+      this.old = null;
+    }
     if (this.egg) this.scene.remove(this.egg);
     if (this.mon) {
       this.scene.remove(this.mon.group);
@@ -131,8 +136,41 @@ export class Showcase {
     this.camera.lookAt(0, 1.1, 0);
   }
 
+  // Evolution: the old form charges up with light, spins, bursts and the new
+  // form appears. Callbacks: onFlash(), onReveal()
+  playEvolve(species, fromStage, toStage, { onFlash, onReveal, sfx } = {}) {
+    this.clear();
+    this.setRarity(species.rarity);
+    // evolutions always get a warm golden stage
+    this.bgU.uBot.value.set('#ffc14d');
+    this.bgU.uTop.value.set('#7a3a1a');
+    this.glowRing.material.color.set('#fff0b0');
+    this.beamMat.color.set('#fff3c4');
+    const R = RARITIES[species.rarity];
+    this.old = new MonsterView(species, fromStage, { castShadow: true, cloud: false, rim: 0.7 });
+    this.old.group.scale.setScalar(1.6);
+    this.scene.add(this.old.group);
+    this.mon = new MonsterView(species, toStage, { castShadow: true, cloud: false, rim: 0.7 });
+    this.mon.group.visible = false;
+    this.mon.group.scale.setScalar(0.001);
+    this.scene.add(this.mon.group);
+    const hFinal = this.mon.worldHeight * 1.6;
+    const vfov = (this.camera.fov * Math.PI) / 180;
+    this.revealDist = Math.min(12, Math.max(5.2, hFinal / (0.5 * 2 * Math.tan(vfov / 2)) + 1.2));
+    this.lookY = Math.max(1.05, hFinal * 0.66);
+    this.camY = 2.4 + (this.lookY - 1.05);
+    this._ly = this.lookY;
+    this.camera.position.set(0, this.camY, this.revealDist + 1);
+    this.old.animator.play('happy');
+    this.seq = { kind: 'evolve', t: 0, phase: 'charge', drama: Math.max(2, R.idx), onFlash, onReveal, sfx, pulses: 0 };
+  }
+
   skip() {
     if (!this.seq) return;
+    if (this.seq.kind === 'evolve') {
+      if (this.seq.phase === 'charge') this.seq.t = Math.max(this.seq.t, 2.2);
+      return;
+    }
     if (this.seq.phase === 'drop' || this.seq.phase === 'wobble') {
       this.seq.t = 0;
       this.seq.phase = 'burst';
@@ -176,7 +214,57 @@ export class Showcase {
     this.bgU.uTime.value = this.time;
     updateGlobalUniforms(dt);
     const s = this.seq;
-    if (s) {
+    if (s && s.kind === 'evolve') {
+      s.t += dt;
+      if (s.phase === 'charge') {
+        const k = clamp(s.t / 2.4, 0, 1);
+        // rising glow pulses and an accelerating spin
+        const pulse = Math.floor(k * 6);
+        while (s.pulses < pulse) {
+          s.pulses++;
+          this.old.flash('#ffffff', 0.35 + s.pulses * 0.1);
+          if (s.sfx) s.sfx('sparkle');
+          for (let i = 0; i < 6; i++) {
+            const a = Math.random() * Math.PI * 2;
+            const p = new THREE.Vector3(Math.cos(a) * 2.2, 0.4 + Math.random() * 2, Math.sin(a) * 2.2);
+            this.particles.emit('sparkle', p, { count: 2, dir: new THREE.Vector3(0, 1, 0).sub(p).normalize(), speed: 2.2, color: this.rarity.color });
+          }
+        }
+        this.old.group.rotation.y += dt * (1 + k * k * 22);
+        this.old.flashT = Math.max(this.old.flashT, k * 0.9);
+        this.old.group.position.y = Math.sin(k * Math.PI * 0.5) * 0.35;
+        this.beamMat.opacity = k * 0.22;
+        this.shake = Math.max(this.shake, k * 0.12);
+        if (k >= 1) {
+          s.phase = 'burst';
+          s.t = 0;
+          this.old.group.visible = false;
+          this.flashK = 1;
+          this.shake = 0.7;
+          const c = new THREE.Vector3(0, 1, 0);
+          this.particles.emit('shock', new THREE.Vector3(0, 0.3, 0), { count: 1, size: 3, color: this.rarity.color });
+          this.particles.emit('star', c, { count: 60, spread: 0.4, speed: 1.6 });
+          this.particles.emit('confetti', new THREE.Vector3(0, 1.6, 0), { count: 80, spread: 1 });
+          this.mon.group.visible = true;
+          if (s.onFlash) s.onFlash();
+        }
+      } else if (s.phase === 'burst') {
+        const k = clamp(s.t / 0.55, 0, 1);
+        this.mon.group.scale.setScalar(Math.max(0.001, ease.outElastic(k) * 1.6));
+        this.mon.group.position.y = Math.sin(k * Math.PI) * 0.5;
+        if (k >= 1) {
+          s.phase = 'reveal';
+          s.t = 0;
+          this.mon.animator.play('roar');
+          if (s.onReveal) s.onReveal();
+        }
+      } else if (s.phase === 'reveal') {
+        this.beamMat.opacity = Math.min(0.22, this.beamMat.opacity + dt * 0.3);
+        if (Math.random() < dt * 4) this.particles.emit('sparkle', new THREE.Vector3((Math.random() - 0.5) * 2, 0.3 + Math.random() * 2, (Math.random() - 0.5) * 1.5), { count: 1, color: this.rarity.color });
+        this.mon.group.rotation.y = Math.sin(this.time * 0.5) * 0.35;
+      }
+      if (this.old) this.old.update(dt);
+    } else if (s) {
       s.t += dt;
       if (s.phase === 'drop') {
         const k = clamp(s.t / 0.55, 0, 1);
@@ -234,9 +322,12 @@ export class Showcase {
       this.flash.scale.setScalar(1 + (1 - this.flashK) * 5);
     }
     this.glowRing.material.opacity = 0.35 + Math.sin(this.time * 3) * 0.2;
-    if (this.mon) this.mon.update(dt);
+    if (this.mon) {
+      this.mon.update(dt);
+      if (this.seq && this.seq.phase === 'reveal') this.mon.ambient(this.particles, dt);
+    }
     // camera: slow push in with shake
-    const reveal = this.mon && this.seq && this.seq.phase === 'reveal';
+    const reveal = this.mon && this.seq && (this.seq.phase === 'reveal' || this.seq.kind === 'evolve');
     const target = reveal ? this.revealDist || 6 : 7.2;
     const k = 1 - Math.exp(-2 * dt);
     this.camera.position.z += (target - this.camera.position.z) * k;

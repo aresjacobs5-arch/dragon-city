@@ -1015,6 +1015,7 @@ export class Arena {
     }
     for (const u of this.units.values()) {
       u.view.update(sdt);
+      if (u.alive) u.view.ambient(this.particles, sdt);
       if (u.bubble) {
         u.bubble.position.copy(u.view.group.position).setY(u.view.group.position.y + u.height * 0.5);
         u.bubble.material.uniforms.uTime.value = this.time;
