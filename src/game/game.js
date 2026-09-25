@@ -186,8 +186,18 @@ export const Game = {
       Q.checkCompletions();
       this._maybeShowEvolution();
       this._maybeShowLevelUp();
+      this._maybeShowDaily();
     }
     if (G.mode === 'battle' || G.mode === 'map') Campaign.update(dt);
+  },
+
+  // Once per day, greet returning players with the login calendar.
+  _maybeShowDaily() {
+    if (this._dailyShown || !G.state.tutorial.done || this.busy || G.mode !== 'island') return;
+    if (UI.stack.length || this.levelQueue.length || this.evoQueue.length || (G.world && G.world.placing)) return;
+    if (performance.now() - this.sessionStart < 2500) return;
+    this._dailyShown = true;
+    if (!RWD.loginStatus().claimedToday) RW.openDaily(this.actions);
   },
 
   _maybeShowEvolution() {
@@ -858,8 +868,13 @@ const A = (Game.actions = {
     }
     return ok;
   },
-  releaseMonster: (m, scr) =>
-    UI.confirm({
+  releaseMonster: (m, scr) => {
+    if (G.state.monsters.length <= 3) {
+      Audio.play('error');
+      UI.toast('Keep at least 3 monsters — they are your family!', { icon: 'heart', kind: 'bad' });
+      return;
+    }
+    return UI.confirm({
       title: 'Release monster?',
       text: `${M.monsterName(m)} will return to the wild and leave you <b>${M.releaseValue(m)} ${M.species(m.sp).name} shards</b> for ranking up.`,
       yes: 'Release',
@@ -871,7 +886,8 @@ const A = (Game.actions = {
         const list = UI.find('monsters');
         if (list && list.refresh) list.refresh();
       },
-    }),
+    });
+  },
   equipRune: (m, r) => {
     const slots = RUNE_SLOTS_BY_LEVEL.filter((l) => m.lvl >= l).length;
     if (m.runes.length >= slots) {

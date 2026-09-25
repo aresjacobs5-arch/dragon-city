@@ -4,6 +4,7 @@ import { UI } from '../ui/ui.js';
 import { HUD } from '../ui/hud.js';
 import { Markers } from '../ui/markers.js';
 import { h, icon } from '../ui/dom.js';
+import { iconSvg } from '../ui/icons.js';
 import * as Sheets from '../ui/screens/sheets.js';
 import { buildingWorldPos } from '../render/world/homeView.js';
 import { BUILDINGS } from '../data/buildings.js';
@@ -49,7 +50,7 @@ const marker = (key) => {
 // Walks the player through buying + placing a building from the shop.
 function buildFlow(type, tab, intro) {
   const name = BUILDINGS[type].name;
-  if (placing(type)) return { el: q('[data-tut="place-ok"]'), text: 'Drag it where you like, then tap <b>✓</b> to build!' };
+  if (placing(type)) return { el: q('[data-tut="place-ok"]'), text: `Drag it where you like, then tap ${iconSvg('check', 'inline')} to build!` };
   if (isOpen('shop')) {
     const scr = UI.find('shop');
     if (scr.tab && scr.tab() !== tab) return { el: q(`[data-tut="tab-${tab}"]`), text: `Open the <b>${tab[0].toUpperCase() + tab.slice(1)}</b> tab.` };
