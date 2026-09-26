@@ -20,7 +20,8 @@ export const SDK = {
   async init(timeoutMs = 3500) {
     const params = new URLSearchParams(location.search);
     this.forceDevAds = params.has('devads');
-    if (params.has('nosdk')) return this;
+    // ?nosdk, or a host page that sets window.BEASTHAVEN_NOSDK (standalone copies)
+    if (params.has('nosdk') || window.BEASTHAVEN_NOSDK) return this;
     try {
       await Promise.race([this._loadScript(), new Promise((_, rej) => setTimeout(() => rej(new Error('sdk timeout')), timeoutMs))]);
       const sdk = window.CrazyGames && window.CrazyGames.SDK;
