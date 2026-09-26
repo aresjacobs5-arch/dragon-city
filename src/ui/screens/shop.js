@@ -107,9 +107,9 @@ export function openShop(A, tab = 'habitats') {
       const L = lvl();
       const packs = [
         { name: 'Pouch of Gold', ic: 'gold', give: { gold: 400 + L * 250 }, cost: { gems: 10 } },
-        { name: 'Chest of Gold', ic: 'gold', give: { gold: (400 + L * 250) * 6 }, cost: { gems: 50 } },
+        { name: 'Chest of Gold', ic: 'gold_pile', give: { gold: (400 + L * 250) * 6 }, cost: { gems: 50 } },
         { name: 'Basket of Food', ic: 'food', give: { food: 300 + L * 200 }, cost: { gems: 10 } },
-        { name: 'Cart of Food', ic: 'food', give: { food: (300 + L * 200) * 6 }, cost: { gems: 50 } },
+        { name: 'Cart of Food', ic: 'food_crate', give: { food: (300 + L * 200) * 6 }, cost: { gems: 50 } },
         { name: 'Energy Refill', ic: 'energy', give: { energy: 20 }, cost: { gems: 8 } },
         { name: 'Breeding Token', ic: 'tokens', give: { tokens: 1 }, cost: { gems: 30 }, minLevel: 15 },
       ];
@@ -127,7 +127,7 @@ export function openShop(A, tab = 'habitats') {
         const card = h('div.scard', null,
           h('div.art', { style: { '--sc': k === 'gold' ? '#fff0b8' : k === 'food' ? '#ffd0d8' : k === 'energy' ? '#fff4a8' : '#ffd6ee' } }, h('div.center', { style: { position: 'absolute', inset: 0 } }, icon(p.ic))),
           h('div.nm', null, p.name),
-          h('div.meta', null, icon(p.ic), `+${fmt(p.give[k])}`),
+          h('div.meta', null, icon(k), `+${fmt(p.give[k])}`),
           h('button.btn.sm.buy.teal', { onclick: () => A.buyPack(p, render) }, costEl(p.cost)));
         card.querySelector('.art .ico').style.cssText = 'width:4.6rem;height:4.6rem';
         items.appendChild(card);

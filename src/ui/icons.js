@@ -59,6 +59,12 @@ function elementBadge(el) {
   return `<circle cx="32" cy="33.5" r="27" fill="${d}"/><circle cx="32" cy="32" r="26" fill="${c}" ${S}/><path d="M13 26a20 20 0 0 1 24-16" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".45"/>${EL_GLYPH[el] || ''}`;
 }
 
+// A single coin seen at an angle (used in piles).
+function coinSvg(cx, cy, r) {
+  const ry = r * 0.72;
+  return `<ellipse cx="${cx}" cy="${cy + 2.5}" rx="${r}" ry="${ry}" fill="#d98a14" ${S}/><ellipse cx="${cx}" cy="${cy}" rx="${r}" ry="${ry}" fill="#ffc83d" ${S}/><ellipse cx="${cx}" cy="${cy}" rx="${r * 0.58}" ry="${ry * 0.58}" fill="none" stroke="#e39b1c" stroke-width="2.4"/>`;
+}
+
 // Treasure chest in tier colours: box, lid, metal bands, lock gem.
 function chestSvg(box, lid, band, gem, sparkle = false) {
   return `<path d="M8 28h48v24a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4z" fill="${box}" ${S}/><path d="M8 28c0-12 8-18 24-18s24 6 24 18z" fill="${lid}" ${S}/><path d="M12 22c2-5 8-8 14-8" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".45"/><path d="M8 28h48" ${S}/><path d="M20 12v44M44 12v44" stroke="${band}" stroke-width="5"/><path d="M20 12v44M44 12v44" stroke="${INK}" stroke-width="1.5" opacity=".45"/><rect x="26" y="24" width="12" height="12" rx="3" fill="${gem}" ${S2}/><circle cx="30" cy="28" r="1.8" fill="#fff" opacity=".8"/>${sparkle ? `<path d="M54 4c1 5 3 7 8 8-5 1-7 3-8 8-1-5-3-7-8-8 5-1 7-3 8-8z" fill="#fff" ${S2}/>` : ''}`;
@@ -67,6 +73,8 @@ function chestSvg(box, lid, band, gem, sparkle = false) {
 const ICONS = {
   // ---------------- resources
   gold: `<ellipse cx="32" cy="37" rx="23" ry="21" fill="#d98a14" ${S}/><circle cx="32" cy="31" r="22" fill="#ffc83d" ${S}/><circle cx="32" cy="31" r="14.5" fill="none" stroke="#e39b1c" stroke-width="3"/><polygon points="${star5(32, 31.5, 9, 4.2)}" fill="#e39b1c"/><path d="M17 24a16 16 0 0 1 12-9" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".7"/>`,
+  gold_pile: `${coinSvg(32, 22, 11)}${coinSvg(22, 34, 11)}${coinSvg(42, 34, 11)}${coinSvg(13, 47, 10)}${coinSvg(32, 47, 11)}${coinSvg(51, 47, 10)}<path d="M26 18a8 5 0 0 1 8-3" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".7"/>`,
+  food_crate: `<path d="M20 12c0-3 1-5 3-6" fill="none" ${S2}/><circle cx="19" cy="24" r="10" fill="#ff4f6d" ${S}/><circle cx="45" cy="24" r="10" fill="#ff9a3a" ${S}/><circle cx="32" cy="20" r="10" fill="#8fd84a" ${S}/><ellipse cx="29" cy="16" rx="3" ry="4" transform="rotate(35 29 16)" ${HL}/><rect x="7" y="29" width="50" height="27" rx="3" fill="#c8864a" ${S}/><path d="M7 42.5h50" stroke="${INK}" stroke-width="2.5"/><path d="M15 29v27M49 29v27" stroke="#9a6238" stroke-width="5"/><path d="M15 29v27M49 29v27" stroke="${INK}" stroke-width="1.2" opacity=".4"/><path d="M11 34h8" stroke="#e8b07a" stroke-width="2.5" stroke-linecap="round"/>`,
   food: `<path d="M33 18c-2-6 0-10 4-12" fill="none" ${S}/><path d="M34 15c6-6 14-6 18-2-5 6-12 6-18 2z" fill="#5fc43d" ${S2}/><circle cx="31" cy="37" r="20" fill="#ff4f6d" ${S}/><path d="M43 50a20 20 0 0 1-26-3 20 20 0 0 0 30-18c0 8-1 16-4 21z" fill="#d42f4f"/><ellipse cx="23" cy="29" rx="5" ry="7" transform="rotate(35 23 29)" ${HL}/>`,
   gems: `<path d="M18 16h28l12 14-26 28L6 30z" fill="#2fc6e0" ${S}/><path d="M18 16l6 14h16l6-14M6 30h52M24 30l8 28 8-28" fill="none" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/><path d="M18 16l6 14H6z" fill="#9af0ff"/><path d="M46 16l12 14H40z" fill="#1a9ab8"/><path d="M40 30h18L32 58z" fill="#1a9ab8" opacity=".7"/><path d="M24 30l8-14 8 14z" fill="#c8f8ff"/>`,
   xp: `<polygon points="${star5(32, 33, 25, 11)}" fill="#ffd23f" ${S}/><polygon points="${star5(32, 33, 25, 11)}" fill="none"/><path d="M26 22l3-8" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".7"/>`,
