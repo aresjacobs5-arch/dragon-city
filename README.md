@@ -16,6 +16,7 @@ npm install
 npm run dev      # http://localhost:5173
 npm run build    # production build in dist/
 npm test         # headless logic tests (economy, battles, save, campaign balance)
+node tools/pacing.mjs 120 3   # simulate a 2-hour session (seed 3) and print its pacing
 ```
 
 Upload the contents of `dist/` to CrazyGames. All paths are relative, so the
@@ -44,7 +45,8 @@ src/
   ui/        HUD, world markers, screens and the storybook UI style sheets
   game/      game controller, campaign/battle mode, tutorial
 tests/       node logic tests
-tools/       Playwright scenario scripts used for visual/regression testing
+tools/       Playwright scenario scripts used for visual/regression testing,
+             and a pacing bot that plays a fresh save with the real systems
 ```
 
 ## CrazyGames integration
