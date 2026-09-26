@@ -34,8 +34,10 @@ export function monsterCard(m, onClick, A, { tag = null, dim = false, sel = fals
   const card = h(`button.mcard${dim ? '.dim' : ''}${sel ? '.sel' : ''}`, { onclick: onClick, style: { '--rc': R.color } });
   const img = h('img', { alt: def.name });
   img.style.opacity = '0';
-  const art = h('div.art', null, h('div.ph', null, icon('paw')), img, elIcons(def.elements), h('div.lv.ol-s', null, `Lv ${m.lvl}`));
+  const ph = h('div.ph', null, icon('paw'));
+  const art = h('div.art', null, ph, img, elIcons(def.elements), h('div.lv.ol-s', null, `Lv ${m.lvl}`));
   if (m.rank) art.appendChild(h('div.rank', null, Array.from({ length: m.rank }, () => icon('star'))));
+  if (m.fav) art.appendChild(h('div.fav', null, icon('heart')));
   if (canFeed(m) && G.state.res.food >= foodToNext(m) && m.lvl < 60 && !tag) art.appendChild(h('div.up-ind', null, icon('up')));
   if (tag) art.appendChild(h('div.tag', null, tag));
   card.append(art, h('div.name', null, monsterName(m)), h('div.rbar'));
@@ -43,6 +45,7 @@ export function monsterCard(m, onClick, A, { tag = null, dim = false, sel = fals
     if (u) {
       img.src = u;
       img.style.opacity = '1';
+      ph.remove(); // the paw placeholder would show through the transparent portrait
     }
   });
   return card;
@@ -121,7 +124,18 @@ export function openMonsterDetail(m, A, { tab = 'info' } = {}) {
   // Give your monster a name of its own
   const nameText = h('span', null, monsterName(m));
   const renameBtn = h('button.rename-btn', { 'aria-label': 'Rename', onclick: () => openRename(m, A, () => (nameText.textContent = monsterName(m))) }, icon('pencil'));
-  const nameEl = h('div.nm.display.ol', null, nameText, renameBtn);
+  const favBtn = h(`button.rename-btn.fav-btn${m.fav ? '.on' : ''}`, {
+    'aria-label': 'Favourite',
+    onclick: () => {
+      m.fav = !m.fav;
+      favBtn.classList.toggle('on', !!m.fav);
+      G.markDirty();
+      A.sfx(m.fav ? 'heart' : 'click');
+      if (m.fav) UI.toast(`${monsterName(m)} is a favourite!`, { icon: 'heart', kind: 'good' });
+      if (curTab === 'info') renderContent();
+    },
+  }, icon('heart'));
+  const nameEl = h('div.nm.display.ol', null, nameText, renameBtn, favBtn);
   stageBox.appendChild(h('div.top', null, h('div.col', { style: { gap: '0.3rem' } }, nameEl, h('div.row', null, rarityChip(def.rarity), h('span.chip', null, icon('crown'), ROLES[def.role].label))), h('div.grow'), elIcons(def.elements)));
   const lvNum = h('div.lvnum.display.ol', null, '');
   const lvBar = bar(0, '#ffd84a', '');
@@ -226,7 +240,9 @@ export function openMonsterDetail(m, A, { tab = 'info' } = {}) {
           ab.cd ? h('div.cd', null, icon('timer'), `${ab.cd}`) : null));
       }
       content.appendChild(h('div.small.muted', { style: { margin: '0.6rem 0.2rem', fontStyle: 'italic' } }, def.desc));
-      if (ownedCount(m.sp) > 1 || m.lvl < 5) {
+      if (m.fav) {
+        content.appendChild(h('div.small.muted', { style: { textAlign: 'right', marginTop: '0.3rem' } }, 'Favourites stay with you. Tap the heart to change that.'));
+      } else if (ownedCount(m.sp) > 1 || m.lvl < 5) {
         content.appendChild(h('div.row', { style: { justifyContent: 'flex-end', marginTop: '0.3rem' } },
           h('button.btn.sm.red', { onclick: () => A.releaseMonster(m, scr) }, icon('shards'), `Release (+${releaseValue(m)} shards)`)));
       }

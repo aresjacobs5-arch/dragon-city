@@ -869,6 +869,7 @@ const A = (Game.actions = {
     return ok;
   },
   releaseMonster: (m, scr) => {
+    if (m.fav) return UI.toast('Favourites cannot be released.', { icon: 'heart', kind: 'bad' });
     if (G.state.monsters.length <= 3) {
       Audio.play('error');
       UI.toast('Keep at least 3 monsters — they are your family!', { icon: 'heart', kind: 'bad' });

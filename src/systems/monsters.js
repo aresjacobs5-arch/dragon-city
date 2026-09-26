@@ -249,5 +249,6 @@ export function sortMonsters(list, key = 'power') {
     name: (a, b) => species(a.sp).name.localeCompare(species(b.sp).name),
     recent: (a, b) => b.got - a.got,
   }[key];
-  return list.slice().sort(fn);
+  // favourites always lead the list
+  return list.slice().sort((a, b) => (b.fav ? 1 : 0) - (a.fav ? 1 : 0) || fn(a, b));
 }

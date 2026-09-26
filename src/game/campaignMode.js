@@ -346,7 +346,8 @@ export const Campaign = {
     const card = h('div.mcard.enemy', { style: { '--rc': boss ? '#e0443a' : R.color } });
     const img = h('img', { alt: def.name });
     img.style.opacity = '0';
-    const art = h('div.art', null, h('div.ph', null, icon('paw')), img, h('div.els', null, def.elements.map((e) => icon(`el_${e}`))), h('div.lv.ol-s', null, `Lv ${lvl}`));
+    const ph = h('div.ph', null, icon('paw'));
+    const art = h('div.art', null, ph, img, h('div.els', null, def.elements.map((e) => icon(`el_${e}`))), h('div.lv.ol-s', null, `Lv ${lvl}`));
     if (elite) art.appendChild(h('div.tag', null, 'ELITE'));
     if (boss) art.appendChild(h('div.tag', null, 'BOSS'));
     card.append(art, h('div.name', null, def.name), h('div.rbar'));
@@ -354,6 +355,7 @@ export const Campaign = {
       if (u) {
         img.src = u;
         img.style.opacity = '1';
+        ph.remove();
       }
     });
     return card;
