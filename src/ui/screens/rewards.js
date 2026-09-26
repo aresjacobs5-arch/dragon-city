@@ -235,8 +235,10 @@ export function openEvents(A) {
     const list = h('div.qlist.scroll', { style: { maxHeight: '38vh' } });
     for (const m of ms) {
       const k = Object.keys(m.reward)[0];
-      const label = k === 'species' ? species(m.reward.species).name : k === 'chest' ? `${m.reward.chest} chest` : k === 'egg' ? `${m.reward.egg} egg` : `${fmt(m.reward[k])} ${k}`;
-      list.appendChild(h(`div.qrow.well${m.claimed ? '.claimed' : m.reached ? '.ready' : ''}`, null, icon(k === 'species' ? 'crown' : k === 'egg' ? 'egg' : k === 'chest' ? 'chest' : k),
+      const cap = (x) => `${x[0].toUpperCase()}${x.slice(1)}`;
+      const RES = { gold: 'Gold', food: 'Food', gems: 'Gems', tokens: 'Breeding Tokens', relicFrags: 'Relic Fragments', runeDust: 'Rune Dust', energy: 'Energy' };
+      const label = k === 'species' ? species(m.reward.species).name : k === 'chest' ? `${cap(m.reward.chest)} Chest` : k === 'egg' ? `${cap(m.reward.egg)} Egg` : `${fmt(m.reward[k])} ${RES[k] || cap(k)}`;
+      list.appendChild(h(`div.qrow.well${m.claimed ? '.claimed' : m.reached ? '.ready' : ''}`, null, icon(k === 'species' ? 'crown' : k === 'egg' ? 'egg' : k === 'chest' ? `chest_${m.reward.chest}` : k),
         h('div.txt', null, h('div.t', null, label), h('div.small.muted', null, `${fmt(m.at)} ${ev.currency}`)),
         m.claimed ? h('span.chip', null, 'Claimed') : m.reached ? h('button.btn.sm.green', { onclick: () => { A.claimEventMilestone(m.i); render(); } }, 'Claim') : icon('lock')));
     }
