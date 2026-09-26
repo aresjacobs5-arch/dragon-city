@@ -23,7 +23,7 @@ export const ISLANDS = [
     center: [30, -8],
     seed: 32,
     unlockLevel: 10,
-    cost: 20000,
+    cost: 12000,
     pond: { x: 3.2, z: -2.8, r: 1.6 },
     stream: [[4.4, -3.8], [6.2, -5.2], [7.2, -6.2]],
     bridgeTo: [0],
