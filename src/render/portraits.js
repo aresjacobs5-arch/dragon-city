@@ -25,9 +25,6 @@ export class Thumbnailer {
     this.pending = new Map();
     this.queue = [];
     this.buf = new Uint8Array(this.size * this.size * 4);
-    this.canvas = document.createElement('canvas');
-    this.canvas.width = this.canvas.height = this.size;
-    this.ctx = this.canvas.getContext('2d');
     engine.onLateFrame(() => this._process());
   }
 
@@ -56,19 +53,26 @@ export class Thumbnailer {
     return this.cache.get(key) || null;
   }
 
+  // Renders queued thumbnails within a small per-frame time budget; PNG
+  // encoding happens asynchronously so it never blocks a frame.
   _process() {
-    let budget = 2;
-    while (budget-- > 0 && this.queue.length) {
+    const t0 = performance.now();
+    let n = 0;
+    while (this.queue.length && (n++ === 0 || performance.now() - t0 < 6)) {
       const { key, job, resolve } = this.queue.shift();
-      let url = null;
+      let out = null;
       try {
-        url = job();
+        out = job();
       } catch (e) {
         console.warn('[thumbs] failed', key, e);
       }
-      this.cache.set(key, url);
-      this.pending.delete(key);
-      resolve(url);
+      Promise.resolve(out)
+        .catch(() => null)
+        .then((url) => {
+          this.cache.set(key, url);
+          this.pending.delete(key);
+          resolve(url);
+        });
     }
   }
 
@@ -119,14 +123,18 @@ export class Thumbnailer {
     r.setClearColor(prevClear, prevAlpha);
     r.setScissorTest(prevScissor);
     this.scene.remove(obj);
-    // flip Y into the 2D canvas
-    const img = this.ctx.createImageData(this.size, this.size);
+    // flip Y into a fresh 2D canvas and encode it off the main thread
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = this.size;
+    const ctx = canvas.getContext('2d');
+    const img = ctx.createImageData(this.size, this.size);
     const row = this.size * 4;
     for (let y = 0; y < this.size; y++) {
       img.data.set(this.buf.subarray((this.size - 1 - y) * row, (this.size - y) * row), y * row);
     }
-    this.ctx.putImageData(img, 0, 0);
-    return this.canvas.toDataURL('image/png');
+    ctx.putImageData(img, 0, 0);
+    if (!canvas.toBlob) return canvas.toDataURL('image/png');
+    return new Promise((resolve) => canvas.toBlob((b) => resolve(b ? URL.createObjectURL(b) : canvas.toDataURL('image/png')), 'image/png'));
   }
 }
 
