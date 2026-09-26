@@ -143,7 +143,7 @@ export function openWheel(A) {
   segs.forEach((s, i) => {
     const a = (i / n) * Math.PI * 2 - Math.PI / 2;
     const k = Object.keys(s.reward)[0];
-    const ic = icon(k === 'egg' ? 'egg' : k === 'chest' ? 'chest' : k);
+    const ic = icon(k === 'egg' ? 'egg' : k === 'chest' ? `chest_${s.reward.chest}` : k);
     const lab = h('div', { style: { position: 'absolute', left: `${50 + Math.cos(a) * 31}%`, top: `${50 + Math.sin(a) * 31}%`, transform: `translate(-50%,-50%) rotate(${(a + Math.PI / 2) * 57.3}deg)`, display: 'flex', flexDirection: 'column', alignItems: 'center' } }, ic, h('span.ol-s.display', { style: { fontSize: '0.8rem' } }, k === 'egg' ? 'Egg' : k === 'chest' ? 'Chest' : fmt(s.reward[k])));
     ic.style.cssText = 'width:2rem;height:2rem';
     wrap.querySelector('svg').parentNode.appendChild(lab);
@@ -174,7 +174,8 @@ export function openWheel(A) {
   else acts.appendChild(h('button.btn.lg.disabled', null, 'Next spin tomorrow'));
   const odds = h('div.odds', null, wheelOdds().map((o) => {
     const k = Object.keys(o.reward)[0];
-    return h('span', null, `${k === 'egg' ? 'Egg' : k === 'chest' ? 'Chest' : `${fmt(o.reward[k])} ${k}`}: ${(o.p * 100).toFixed(0)}%`);
+    const RES = { gold: 'Gold', food: 'Food', gems: 'Gems', energy: 'Energy', tokens: 'Breeding Token' };
+    return h('span', null, `${k === 'egg' ? `${RARITY_NAME[o.reward.egg] || ''} Egg`.trim() : k === 'chest' ? `${RARITY_NAME[o.reward.chest] || o.reward.chest[0].toUpperCase() + o.reward.chest.slice(1)} Chest` : `${fmt(o.reward[k])} ${RES[k] || k}`}: ${(o.p * 100).toFixed(0)}%`);
   }));
   const scr = UI.panel({ key: 'wheel', title: 'Lucky Wheel', ribbon: 'purple', kind: 'modal', content: [wrap, acts, h('details', null, h('summary.small.muted', null, 'Odds'), odds)] });
   UI.open(scr);
