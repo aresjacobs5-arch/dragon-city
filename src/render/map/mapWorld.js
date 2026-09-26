@@ -8,6 +8,7 @@ import { theme as getTheme } from '../world/themes.js';
 import { sharedEnvMaterial, updateGlobalUniforms } from '../materials.js';
 import { MonsterView } from '../monsters/builder.js';
 import { Particles } from '../fx/particles.js';
+import { WeatherFx } from '../fx/weather.js';
 import { RNG } from '../../core/rng.js';
 import { ease } from '../../core/math.js';
 import * as Geo from '../geom.js';
@@ -56,6 +57,7 @@ export class MapWorld {
     this.sun.shadow.radius = 3;
     this.scene.add(this.sun, this.sun.target);
     this.particles = new Particles(this.scene, 600);
+    this.weather = new WeatherFx(this.scene, this.particles, this.camera);
     this.cache = new Map();
     this.cur = null;
     this.avatar = null;
@@ -100,6 +102,9 @@ export class MapWorld {
     const T = W.T;
     this.scene.fog = new THREE.Fog(T.fog, 70, 300);
     this.hemi.color.set(T.skyHorizon).lerp(new THREE.Color('#ffffff'), 0.55);
+    this.hemi.intensity = 1.1 * (T.light ?? 1);
+    this.sun.intensity = 2.9 * (T.light ?? 1);
+    this.weather.setTheme(world.theme);
     const [, zEnd] = nodeXZ(30);
     this.camCtl.bounds = { minX: -7, maxX: 7, minZ: zEnd - 2, maxZ: 10 };
     if (onBuilt) onBuilt(W);
@@ -222,9 +227,9 @@ export class MapWorld {
     // sky & sea
     const sky = createSky({ top: T.skyTop, horizon: T.skyHorizon, sun: T.sun, sunDir: new THREE.Vector3(-0.3, 0.35, -0.9) });
     group.add(sky);
-    const sea = createCloudSea({ y: -42, fog: T.fog, color: T.lava ? '#ffe2c8' : '#ffffff', shade: T.lava ? '#d8a08a' : '#b9cdea' });
+    const sea = createCloudSea({ y: -42, fog: T.fog, color: T.cloudSea || (T.lava ? '#ffe2c8' : '#ffffff'), shade: T.cloudShade || (T.lava ? '#d8a08a' : '#b9cdea') });
     group.add(sea);
-    const clouds = new CloudLayer({ seed: world.id * 3 + 1, count: 26, area: 110, yRange: [-38, -15], avoidRadius: 12, center: new THREE.Vector3(0, 0, -34) });
+    const clouds = new CloudLayer({ seed: world.id * 3 + 1, count: 26, area: 110, yRange: [-38, -15], avoidRadius: 12, center: new THREE.Vector3(0, 0, -34), ...(T.cloudTop ? { top: T.cloudTop, bottom: T.cloudBottom } : {}) });
     group.add(clouds.group);
     return { id: world.id, world, group, T, nodes, sky, sea, clouds, boss: null };
   }
@@ -476,6 +481,8 @@ export class MapWorld {
     }
     this.ringMat.opacity = 0.55 + Math.sin(this.time * 4) * 0.3;
     this.ring.rotation.y += dt * 0.6;
+    this.weather.update(dt, { center: tgt, area: [16, 12], scale: 1.3, rateMul: 1.1 });
+    this.hemi.intensity = 1.1 * ((this.cur && this.cur.T.light) ?? 1) + this.weather.flashK * 1.2;
     this.particles.setScale(this.engine.height * this.engine.renderer.getPixelRatio(), this.camera.fov);
     this.particles.update(dt);
   }

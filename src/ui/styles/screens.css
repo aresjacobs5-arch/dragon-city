@@ -1657,6 +1657,20 @@
   width: 1.2rem;
   height: 1.2rem;
 }
+.mstory {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0 0.2rem 0.4rem;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #a0526e;
+}
+.mstory .ico {
+  flex: none;
+  width: 1.15rem;
+  height: 1.15rem;
+}
 .fav-btn .ico {
   filter: grayscale(1) brightness(1.35);
   opacity: 0.6;

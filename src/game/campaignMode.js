@@ -126,7 +126,10 @@ export const Campaign = {
     let world = w || G.state.campaign.world || f.w;
     if (!CP.worldUnlocked(world)) world = f.w;
     this._transit = true;
-    if (!this.map) this.map = new MapWorld(G.engine);
+    if (!this.map) {
+      this.map = new MapWorld(G.engine);
+      this.map.weather.onSfx = (n) => G.mode === 'map' && Audio.play(n);
+    }
     const wasMap = G.mode === 'map';
     const swap = () => {
       UI.closeAll();
@@ -1251,6 +1254,8 @@ export const Campaign = {
         items = cfg.onWin(stars) || [];
         stat('win');
       }
+      // every victory becomes part of the team's shared story
+      for (const m of cfg.team || []) if (m && G.state.monsters.includes(m)) m.wins = (m.wins || 0) + 1;
       G.bus.emit('battle:won', { cfg, stars });
     } else if (cfg.onLose) cfg.onLose();
     G.markDirty();

@@ -40,10 +40,11 @@ export function byId(id) {
   return G.state.monsters.find((m) => m.id === id) || null;
 }
 
-export function createMonster(sp, { level = 1, source = 'hatch', habitat = null } = {}) {
+export function createMonster(sp, { level = 1, source = 'hatch', habitat = null, origin = null, parents = null } = {}) {
   const def = species(sp);
   if (!def) throw new Error(`Unknown species ${sp}`);
-  const m = { id: G.uid(), sp, lvl: level, xp: 0, rank: 0, hab: habitat, runes: [], relic: null, got: G.now() };
+  const m = { id: G.uid(), sp, lvl: level, xp: 0, rank: 0, hab: habitat, runes: [], relic: null, got: G.now(), src: origin || source };
+  if (parents) m.par = parents;
   G.state.monsters.push(m);
   const firstTime = !G.state.dex[sp] || G.state.dex[sp] < 2;
   G.state.dex[sp] = 2;

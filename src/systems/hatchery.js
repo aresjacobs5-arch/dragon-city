@@ -34,7 +34,7 @@ export function hatchTime(sp) {
 
 // Adds an egg. Eggs beyond capacity wait (until = null) and start incubating
 // automatically when a slot frees up.
-export function addEgg(sp, { source = 'reward', instant = false } = {}) {
+export function addEgg(sp, { source = 'reward', instant = false, parents = null } = {}) {
   const active = incubating().length;
   const t = instant ? 0 : hatchTime(sp);
   const egg = {
@@ -45,6 +45,7 @@ export function addEgg(sp, { source = 'reward', instant = false } = {}) {
     until: active < hatcherySlots() ? G.now() + t * 1000 : null,
     dur: t,
   };
+  if (parents) egg.parents = parents;
   G.state.hatchery.push(egg);
   markSeen(sp);
   G.markDirty();
@@ -79,7 +80,7 @@ export function hatchEgg(egg) {
   const i = G.state.hatchery.indexOf(egg);
   if (i < 0) return null;
   G.state.hatchery.splice(i, 1);
-  const m = createMonster(egg.sp, { source: 'hatch' });
+  const m = createMonster(egg.sp, { source: 'hatch', origin: egg.source, parents: egg.parents || null });
   stat('hatch');
   addXP(RARITIES[species(egg.sp).rarity].xp, 'hatch');
   promoteWaiting();

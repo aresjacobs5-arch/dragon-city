@@ -153,6 +153,12 @@ export class Particles {
     scene.add(this.normal.points);
     scene.add(this.additive.points);
   }
+
+  // drop every live particle (e.g. when the scene behind them changes)
+  clear() {
+    this.normal.p.length = 0;
+    this.additive.p.length = 0;
+  }
   setScale(pixelHeight, fov = 30) {
     const s = pixelHeight / (2 * Math.tan((fov * Math.PI) / 360));
     this.normal.mat.uniforms.uScale.value = s;

@@ -28,6 +28,36 @@ export function elIcons(els, cls = '') {
 }
 
 // ---------------------------------------------------------------- cards
+const ORIGIN = {
+  starter: 'Your very first monster',
+  shop: 'Hatched from a shop egg',
+  chest: 'Found in a treasure chest',
+  campaign: 'Found on your adventures',
+  stars: 'A reward for your campaign stars',
+  daily: 'A daily login gift',
+  wheel: 'Won on the Lucky Wheel',
+  event: 'An event reward',
+  quest: 'A reward for a finished goal',
+  shards: 'Summoned at the Ancient Shrine',
+  achievement: 'A reward for an achievement',
+  tower: 'A Challenge Tower prize',
+};
+function timeAgo(t) {
+  const s = Math.max(0, (G.now() - t) / 1000);
+  if (s < 90) return 'just now';
+  if (s < 3600) return `${Math.round(s / 60)} minutes ago`;
+  const n = s < 86400 ? Math.round(s / 3600) : Math.round(s / 86400);
+  return `${n} ${s < 86400 ? 'hour' : 'day'}${n > 1 ? 's' : ''} ago`;
+}
+// One line of personal history: where the monster came from, how long it has
+// been with you and how many battles you have won together.
+export function monsterStory(m) {
+  const from = m.par ? `Child of ${m.par[0]} and ${m.par[1]}` : ORIGIN[m.src] || 'Hatched in your haven';
+  const parts = [from, `joined ${timeAgo(m.got || G.now())}`];
+  if (m.wins) parts.push(`${m.wins} ${m.wins === 1 ? 'victory' : 'victories'} together`);
+  return parts.join(' · ');
+}
+
 export function monsterCard(m, onClick, A, { tag = null, dim = false, sel = false } = {}) {
   const def = species(m.sp);
   const R = RARITIES[def.rarity];
@@ -239,7 +269,8 @@ export function openMonsterDetail(m, A, { tab = 'info' } = {}) {
           h('div.grow', null, h('div.t', null, ab.name, h(`span.kind${ab.kind === 'ult' ? '.ult' : ''}`, null, ab.kind === 'basic' ? 'Basic' : ab.kind === 'ult' ? 'Ultimate' : 'Skill')), h('div.d', null, describeAbility(ab, statusNames))),
           ab.cd ? h('div.cd', null, icon('timer'), `${ab.cd}`) : null));
       }
-      content.appendChild(h('div.small.muted', { style: { margin: '0.6rem 0.2rem', fontStyle: 'italic' } }, def.desc));
+      content.appendChild(h('div.small.muted', { style: { margin: '0.6rem 0.2rem 0.3rem', fontStyle: 'italic' } }, def.desc));
+      content.appendChild(h('div.mstory', null, icon('heart'), h('span', null, monsterStory(m))));
       if (m.fav) {
         content.appendChild(h('div.small.muted', { style: { textAlign: 'right', marginTop: '0.3rem' } }, 'Favourites stay with you. Tap the heart to change that.'));
       } else if (ownedCount(m.sp) > 1 || m.lvl < 5) {
