@@ -1,0 +1,8 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+body{margin:0;background:#fff6e3;font:700 10px sans-serif;color:#2a1a2f;display:flex;flex-wrap:wrap;gap:6px;padding:10px}
+.c{width:74px;text-align:center}.c svg{width:56px;height:56px;display:block;margin:0 auto 2px}
+.dark{background:#3a2a4a;color:#fff}</style></head><body><script type="module">
+import { iconSvg, ICON_NAMES } from '../src/ui/icons.js';
+document.body.innerHTML = ICON_NAMES.map(n => `<div class="c">${iconSvg(n)}${n}</div>`).join('');
+window.__ready = true;
+</script></body></html>

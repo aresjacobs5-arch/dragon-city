@@ -1,0 +1,199 @@
+{
+ "sfx": {
+  "click": [
+   "audio/sfx/click-1.mp3"
+  ],
+  "tab": [
+   "audio/sfx/tab-1.mp3"
+  ],
+  "back": [
+   "audio/sfx/back-1.mp3"
+  ],
+  "error": [
+   "audio/sfx/error-1.mp3"
+  ],
+  "tick": [
+   "audio/sfx/tick-1.mp3"
+  ],
+  "pop": [
+   "audio/sfx/pop-1.mp3"
+  ],
+  "place": [
+   "audio/sfx/place-1.mp3"
+  ],
+  "heart": [
+   "audio/sfx/heart-1.mp3"
+  ],
+  "collect": [
+   "audio/sfx/collect-1.mp3"
+  ],
+  "reward": [
+   "audio/sfx/reward-1.mp3"
+  ],
+  "quest": [
+   "audio/sfx/quest-1.mp3"
+  ],
+  "unlock": [
+   "audio/sfx/unlock-1.mp3"
+  ],
+  "built": [
+   "audio/sfx/built-1.mp3"
+  ],
+  "burst": [
+   "audio/sfx/burst-1.mp3"
+  ],
+  "sparkle": [
+   "audio/sfx/sparkle-1.mp3"
+  ],
+  "coin": [
+   "audio/sfx/coin-1.mp3",
+   "audio/sfx/coin-2.mp3",
+   "audio/sfx/coin-3.mp3"
+  ],
+  "food": [
+   "audio/sfx/food-1.mp3"
+  ],
+  "crack": [
+   "audio/sfx/crack-1.mp3"
+  ],
+  "land": [
+   "audio/sfx/land-1.mp3"
+  ],
+  "build": [
+   "audio/sfx/build-1.mp3",
+   "audio/sfx/build-2.mp3",
+   "audio/sfx/build-3.mp3"
+  ],
+  "whoosh": [
+   "audio/sfx/whoosh-1.mp3",
+   "audio/sfx/whoosh-2.mp3"
+  ],
+  "swoosh": [
+   "audio/sfx/swoosh-1.mp3"
+  ],
+  "eat": [
+   "audio/sfx/eat-1.mp3",
+   "audio/sfx/eat-2.mp3"
+  ],
+  "faint": [
+   "audio/sfx/faint-1.mp3"
+  ],
+  "attack": [
+   "audio/sfx/attack-1.mp3",
+   "audio/sfx/attack-2.mp3"
+  ],
+  "hit": [
+   "audio/sfx/hit-1.mp3",
+   "audio/sfx/hit-2.mp3",
+   "audio/sfx/hit-3.mp3"
+  ],
+  "crit": [
+   "audio/sfx/crit-1.mp3"
+  ],
+  "fire": [
+   "audio/sfx/fire-1.mp3",
+   "audio/sfx/fire-2.mp3",
+   "audio/sfx/fire-3.mp3"
+  ],
+  "water": [
+   "audio/sfx/water-1.mp3"
+  ],
+  "zap": [
+   "audio/sfx/zap-1.mp3",
+   "audio/sfx/zap-2.mp3"
+  ],
+  "ice": [
+   "audio/sfx/ice-1.mp3"
+  ],
+  "rock": [
+   "audio/sfx/rock-1.mp3",
+   "audio/sfx/rock-2.mp3"
+  ],
+  "magic": [
+   "audio/sfx/magic-1.mp3"
+  ],
+  "heal": [
+   "audio/sfx/heal-1.mp3"
+  ],
+  "shield": [
+   "audio/sfx/shield-1.mp3"
+  ],
+  "buff": [
+   "audio/sfx/buff-1.mp3"
+  ],
+  "debuff": [
+   "audio/sfx/debuff-1.mp3"
+  ],
+  "charge": [
+   "audio/sfx/charge-1.mp3",
+   "audio/sfx/charge-2.mp3"
+  ],
+  "boom": [
+   "audio/sfx/boom-1.mp3",
+   "audio/sfx/boom-2.mp3"
+  ],
+  "thunder": [
+   "audio/sfx/thunder-1.mp3"
+  ]
+ },
+ "voices": {
+  "cute": [
+   "audio/voice/cute-1.mp3",
+   "audio/voice/cute-2.mp3",
+   "audio/voice/cute-3.mp3",
+   "audio/voice/cute-4.mp3",
+   "audio/voice/cute-5.mp3",
+   "audio/voice/cute-6.mp3",
+   "audio/voice/cute-7.mp3",
+   "audio/voice/cute-8.mp3"
+  ],
+  "beast": [
+   "audio/voice/beast-1.mp3",
+   "audio/voice/beast-2.mp3",
+   "audio/voice/beast-3.mp3",
+   "audio/voice/beast-4.mp3",
+   "audio/voice/beast-5.mp3",
+   "audio/voice/beast-6.mp3",
+   "audio/voice/beast-7.mp3",
+   "audio/voice/beast-8.mp3",
+   "audio/voice/beast-9.mp3",
+   "audio/voice/beast-10.mp3"
+  ],
+  "big": [
+   "audio/voice/big-1.mp3",
+   "audio/voice/big-2.mp3",
+   "audio/voice/big-3.mp3",
+   "audio/voice/big-4.mp3",
+   "audio/voice/big-5.mp3",
+   "audio/voice/big-6.mp3"
+  ]
+ },
+ "music": {
+  "island": [
+   "audio/music/island-1.mp3",
+   "audio/music/island-2.mp3"
+  ],
+  "map": [
+   "audio/music/map-1.mp3",
+   "audio/music/map-2.mp3"
+  ],
+  "battle": [
+   "audio/music/battle-1.mp3",
+   "audio/music/battle-2.mp3"
+  ],
+  "boss": [
+   "audio/music/boss-1.mp3",
+   "audio/music/boss-2.mp3"
+  ]
+ },
+ "jingles": {
+  "victory": "audio/jingles/victory.mp3",
+  "victoryBoss": "audio/jingles/victoryBoss.mp3",
+  "defeat": "audio/jingles/defeat.mp3",
+  "levelup": "audio/jingles/levelup.mp3",
+  "hatch": "audio/jingles/hatch.mp3",
+  "island": "audio/jingles/island.mp3",
+  "evolve": "audio/jingles/evolve.mp3",
+  "welcome": "audio/jingles/welcome.mp3"
+ }
+}

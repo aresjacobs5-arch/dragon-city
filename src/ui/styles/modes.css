@@ -1,0 +1,814 @@
+/* ------------------------------------------------------------------ MAP / BATTLE LAYERS */
+#modehud > * {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+#modehud {
+  transition: opacity 0.2s;
+}
+#modehud.behind {
+  opacity: 0;
+}
+#modehud.behind * {
+  pointer-events: none !important;
+}
+.node-layer .node-lbl {
+  left: 0;
+  top: 0;
+  transform: none;
+  filter: drop-shadow(0 0.2rem 0 rgba(42, 26, 47, 0.35));
+}
+.node-lbl .num {
+  box-shadow: inset 0 -0.2rem 0 var(--paper3);
+}
+.node-lbl .num.cur {
+  box-shadow: inset 0 -0.2rem 0 var(--gold-d);
+  animation: bob 1.1s ease-in-out infinite;
+}
+.map-hud .title .ribbon {
+  white-space: nowrap;
+}
+.map-hud .energy {
+  min-width: 7rem;
+  pointer-events: auto;
+}
+.map-hud .wnav {
+  width: 3.6rem;
+  height: 3.6rem;
+  min-height: 0;
+  padding: 0;
+  border-radius: 50%;
+}
+.map-hud .wnav .ico {
+  width: 1.9rem;
+  height: 1.9rem;
+}
+.btn.disabled {
+  filter: grayscale(0.85) brightness(0.9);
+}
+.star-track {
+  position: absolute;
+  left: 50%;
+  bottom: 1.4rem;
+  transform: translateX(-50%);
+  width: min(26rem, 70vw);
+  height: 3.2rem;
+}
+.star-track .bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 1.1rem;
+  height: 0.95rem;
+}
+.star-track .sc {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.star-track .sc .ico {
+  width: 2.6rem;
+  height: 2.6rem;
+  filter: drop-shadow(0 0.15rem 0 rgba(42, 26, 47, 0.4));
+}
+.star-track .sc span {
+  font-family: 'Lilita One', sans-serif;
+  font-size: 0.8rem;
+  margin-top: -0.3rem;
+}
+.star-track .sc.got .ico {
+  filter: grayscale(0.7) brightness(1.1);
+  opacity: 0.7;
+}
+.map-extra {
+  position: absolute;
+  right: 1rem;
+  bottom: 1.2rem;
+  display: flex;
+  gap: 0.6rem;
+}
+
+/* stage panel */
+.stage-head {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 0.4rem 0 0.8rem;
+}
+.chip.rule {
+  background: #ffe2c4;
+}
+.chip.done {
+  background: #d8f5c8;
+}
+.enemy-row .mcard.enemy {
+  cursor: default;
+}
+.hint-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  margin-top: 0.6rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.hint-row .ico {
+  width: 1.6rem;
+  height: 1.6rem;
+}
+.sect-lbl {
+  font-family: 'Lilita One', sans-serif;
+  font-size: 1rem;
+  color: var(--muted);
+  text-align: center;
+  margin: 0.9rem 0 0.5rem;
+  letter-spacing: 0.03em;
+}
+.reward-row.small-rw {
+  gap: 0.55rem;
+}
+.reward-row.small-rw .rw-item {
+  width: 4.8rem;
+  height: 5.2rem;
+  animation: none;
+}
+.reward-row.small-rw .rw-item .ico,
+.reward-row.small-rw .rw-item img {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+.rw-item .first-tag {
+  position: absolute;
+  top: -0.6rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Lilita One', sans-serif;
+  font-size: 0.66rem;
+  padding: 0.05rem 0.4rem 0.1rem;
+  border-radius: 0.5rem;
+  border: 0.13rem solid var(--ink);
+  background: var(--gold);
+  color: #fff;
+  text-shadow: 0 0.08rem 0 var(--ink);
+}
+.rw-item .n.doubled {
+  color: var(--purple-d);
+}
+.btn .cost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  margin-left: 0.2rem;
+  font-size: 1rem;
+}
+
+/* team select */
+.team-top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.6rem;
+}
+.team-enemies {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: 1.2rem;
+  background: #4a3a52;
+  border: 0.17rem solid var(--ink);
+}
+.team-enemies .lbl {
+  font-family: 'Lilita One', sans-serif;
+  color: #ffb0a0;
+  font-size: 0.95rem;
+  margin-right: 0.2rem;
+}
+.team-enemies .foe {
+  position: relative;
+  width: 3.8rem;
+  height: 3.8rem;
+  border-radius: 50%;
+  border: 0.17rem solid var(--ink);
+  background: radial-gradient(circle at 50% 60%, #ff8a7a, #c8403a);
+  overflow: visible;
+}
+.team-enemies .foe img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 50%;
+}
+.team-enemies .foe .els {
+  position: absolute;
+  left: -0.3rem;
+  top: -0.3rem;
+  display: flex;
+}
+.team-enemies .foe .els .ico {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+.team-enemies .foe .lv {
+  position: absolute;
+  right: -0.2rem;
+  bottom: -0.3rem;
+  font-family: 'Lilita One', sans-serif;
+  font-size: 0.95rem;
+}
+.team-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 0.3rem 0 0.8rem;
+  border-bottom: 0.15rem dashed var(--paper3);
+  margin-bottom: 0.4rem;
+}
+.team-slots {
+  display: flex;
+  gap: 0.6rem;
+}
+.team-slots .mcard {
+  width: 7.4rem;
+}
+.team-empty {
+  width: 7.4rem;
+  height: 8.6rem;
+  border-radius: 1rem;
+  border: 0.19rem dashed var(--paper4);
+  background: var(--paper2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.team-empty .ico {
+  width: 2.2rem;
+  height: 2.2rem;
+  opacity: 0.5;
+}
+.team-side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+  min-width: 15rem;
+}
+.team-power {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-family: 'Lilita One', sans-serif;
+  font-size: 1.25rem;
+  padding: 0.3rem 0.9rem;
+  border-radius: 1rem;
+  border: 0.17rem solid var(--ink);
+  background: var(--paper2);
+}
+.team-power .ico {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+.team-power.good {
+  background: #d8f5c8;
+}
+.team-power.ok {
+  background: #fff1c4;
+}
+.team-power.bad {
+  background: #ffd4cc;
+}
+.team-warn {
+  color: var(--red-d);
+  min-height: 1.1rem;
+  text-align: center;
+  max-width: 18rem;
+}
+.team-grid .mcard .match {
+  position: absolute;
+  left: 50%;
+  bottom: 0.3rem;
+  transform: translateX(-50%);
+  font-family: 'Lilita One', sans-serif;
+  font-size: 0.72rem;
+  padding: 0.05rem 0.45rem 0.1rem;
+  border-radius: 0.5rem;
+  border: 0.13rem solid var(--ink);
+  color: #fff;
+}
+.team-grid .mcard .match.strong {
+  background: var(--green);
+}
+.team-grid .mcard .match.weak {
+  background: var(--gray-d);
+}
+.team-grid .mcard .up-ind {
+  display: none;
+}
+
+/* battle hud */
+.bhud .frames > .unit-frame {
+  left: 0;
+  top: 0;
+}
+.bhud .nums > .dmg-num {
+  left: 0;
+  top: 0;
+  z-index: 3;
+}
+.bhud .badges > .tgt-badge {
+  z-index: 2;
+}
+.unit-frame .nm {
+  color: #fff;
+}
+.unit-frame .nm .lvl {
+  font-size: 0.72rem;
+  padding: 0 0.3rem 0.05rem;
+  margin-left: 0.15rem;
+  border-radius: 0.5rem;
+  background: rgba(42, 26, 47, 0.75);
+  text-shadow: none;
+}
+.unit-frame.elite .nm {
+  color: #e2c4ff;
+}
+.unit-frame .sts .st-w {
+  position: relative;
+}
+.unit-frame .sts .st-w span {
+  position: absolute;
+  right: -0.2rem;
+  bottom: -0.25rem;
+  font-family: 'Lilita One', sans-serif;
+  font-size: 0.65rem;
+}
+.unit-frame.turn .hp {
+  box-shadow: 0 0 0 0.16rem #ffd84a;
+}
+.bhud > .frames,
+.bhud > .badges,
+.bhud > .nums {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.boss-bar {
+  position: absolute;
+  left: 50%;
+  top: 5.2rem;
+  transform: translateX(-50%);
+}
+.boss-bar .unit-frame.boss {
+  position: relative;
+  transform: none;
+  padding: 0.35rem 0.9rem 0.45rem;
+  border-radius: 1rem;
+  background: rgba(42, 26, 47, 0.78);
+  border: 0.17rem solid var(--ink);
+}
+.boss-bar .unit-frame.boss .nm {
+  font-size: 1.1rem;
+}
+.boss-bar .unit-frame.boss .hp {
+  width: min(24rem, 60vw);
+  height: 1.3rem;
+}
+.boss-bar .unit-frame.boss .en {
+  width: min(24rem, 60vw);
+}
+.bhud .quit,
+.bhud .ctl,
+.bhud .abar {
+  pointer-events: auto;
+}
+.bhud .quit {
+  width: 3rem;
+  height: 3rem;
+  min-height: 0;
+  padding: 0;
+  border-radius: 50%;
+}
+.bhud .hint-bubble {
+  bottom: 9.2rem;
+  animation: bob 1.2s ease-in-out infinite;
+}
+.bhud .wave-banner {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 26%;
+  display: flex;
+  justify-content: center;
+  white-space: nowrap;
+  pointer-events: none;
+  transition: opacity 0.35s, transform 0.35s;
+}
+.wave-banner .big-title.boss {
+  color: #ff8a7a;
+  font-size: 3.4rem;
+}
+.wave-banner.out {
+  opacity: 0;
+  transform: scale(1.25);
+}
+.big-title.defeat {
+  color: #c8c0d8;
+}
+.results .result-stars {
+  display: flex;
+  gap: 0.6rem;
+  z-index: 2;
+}
+.results .rs .ico {
+  width: 4.4rem;
+  height: 4.4rem;
+  filter: drop-shadow(0 0.25rem 0 rgba(42, 26, 47, 0.55));
+}
+.results .rs {
+  animation: starIn 0.45s cubic-bezier(0.3, 1.8, 0.5, 1) backwards;
+}
+.results .rs:nth-child(2) {
+  transform: translateY(-0.8rem);
+}
+.results .rs:nth-child(2) .ico {
+  width: 5.2rem;
+  height: 5.2rem;
+}
+@keyframes starIn {
+  0% { transform: scale(3) rotate(-30deg); opacity: 0; }
+  100% { opacity: 1; }
+}
+.result-sub {
+  font-size: 1.5rem;
+  z-index: 2;
+}
+.results .tips {
+  z-index: 2;
+  padding: 0.9rem 1.2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: min(30rem, 90vw);
+}
+.results .tips-h {
+  font-size: 1.2rem;
+  text-align: center;
+}
+.results .tip {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 1rem;
+}
+.results .tip .ico {
+  width: 2rem;
+  height: 2rem;
+}
+
+/* tower */
+.tower-wrap {
+  display: flex;
+  gap: 1.2rem;
+  align-items: stretch;
+}
+.tower-floors {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.5rem;
+  border-radius: 1rem;
+  background: #4a3a52;
+  border: 0.17rem solid var(--ink);
+}
+.tower-floors .tf {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  justify-content: center;
+  padding: 0.3rem 0.9rem;
+  border-radius: 0.7rem;
+  background: #6a5a76;
+  color: #e8dcf0;
+  font-family: 'Lilita One', sans-serif;
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+.tower-floors .tf .ico {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+.tower-floors .tf.cur {
+  background: var(--gold);
+  color: #fff;
+  text-shadow: 0 0.1rem 0 var(--ink);
+  outline: 0.17rem solid var(--ink);
+}
+.tower-floors .tf.done {
+  opacity: 0.6;
+}
+
+/* ------------------------------------------------------------------ TUTORIAL POINTER */
+#tutorial {
+  z-index: 5;
+}
+.tut-hand {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 4.2rem;
+  height: 4.2rem;
+  pointer-events: none;
+  z-index: 3;
+  filter: drop-shadow(0 0.3rem 0 rgba(42, 26, 47, 0.45));
+  transition: opacity 0.2s;
+}
+.tut-hand svg {
+  width: 100%;
+  height: 100%;
+  animation: tutPoke 0.9s ease-in-out infinite;
+  transform-origin: 30% 10%;
+}
+@keyframes tutPoke {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(0.35rem, 0.55rem) scale(0.94); }
+}
+.tut-ring {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 1.2rem;
+  border: 0.3rem solid #ffd84a;
+  box-shadow: 0 0 0 0.2rem var(--ink), 0 0 1.4rem 0.3rem rgba(255, 216, 74, 0.8);
+  pointer-events: none;
+  animation: tutRing 1.2s ease-in-out infinite;
+}
+@keyframes tutRing {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+.tut-bubble {
+  position: absolute;
+  left: 0;
+  top: 0;
+  max-width: min(21rem, 78vw);
+  padding: 0.55rem 0.95rem 0.65rem;
+  border-radius: 1rem;
+  border: 0.19rem solid var(--ink);
+  background: var(--paper);
+  box-shadow: inset 0 -0.3rem 0 var(--paper2), 0 0.3rem 0 rgba(42, 26, 47, 0.5);
+  font-size: 1.05rem;
+  line-height: 1.25;
+  font-weight: 800;
+  color: var(--text);
+  pointer-events: none;
+  animation: pop 0.3s;
+}
+.tut-bubble b {
+  color: var(--orange-d);
+}
+.tut-bubble .who {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: 'Lilita One', sans-serif;
+  font-weight: 400;
+  color: var(--purple-d);
+  font-size: 0.9rem;
+  margin-bottom: 0.15rem;
+}
+.tut-bubble .who .ico {
+  width: 1.3rem;
+  height: 1.3rem;
+}
+
+/* ------------------------------------------------------------------ RUNES / RELICS / SHRINE */
+.rune-forge {
+  display: flex;
+  gap: 1rem;
+  min-height: 22rem;
+}
+.rune-inv {
+  flex: 1;
+  max-height: 60vh;
+}
+.rune-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(6.4rem, 1fr));
+  gap: 0.6rem;
+  padding: 0.3rem;
+}
+.rune-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.5rem 0.3rem 0.45rem;
+  border-radius: 1rem;
+  border: 0.17rem solid var(--ink);
+  background: var(--paper);
+  box-shadow: 0 0.25rem 0 rgba(42, 26, 47, 0.45);
+}
+.rune-card .n {
+  font-family: 'Lilita One', sans-serif;
+  font-size: 0.85rem;
+  line-height: 1.05;
+  text-align: center;
+}
+.rune-card .v {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+.rune-card .owner {
+  position: absolute;
+  top: -0.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.62rem;
+  padding: 0 0.35rem;
+  border-radius: 0.5rem;
+  background: var(--ink);
+  color: #fff;
+  white-space: nowrap;
+  max-width: 95%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rune-card.sel {
+  outline: 0.25rem solid var(--gold);
+  background: #fff1c4;
+}
+.rune-card.on {
+  background: var(--paper2);
+}
+.rune-side {
+  width: 15rem;
+  padding: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+}
+.rune-side .dust {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: 'Lilita One', sans-serif;
+  font-size: 1.2rem;
+}
+.rune-side .dust .ico {
+  width: 2rem;
+  height: 2rem;
+}
+.rune-big {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+.rune-big > *:first-child {
+  transform: scale(1.5);
+  margin: 0.8rem 0 0.6rem;
+}
+.relic-top {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  justify-content: center;
+  margin-bottom: 0.6rem;
+  font-family: 'Lilita One', sans-serif;
+  font-size: 1.2rem;
+}
+.relic-top .ico {
+  width: 2rem;
+  height: 2rem;
+}
+.relic-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 58vh;
+  padding: 0.2rem;
+}
+.relic-row {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.55rem 0.8rem;
+}
+.relic-row.owned {
+  background: #e8f7ee;
+}
+.relic-gem {
+  --rc: #9aa9bd;
+  width: 3.2rem;
+  height: 3.2rem;
+  flex: none;
+  border-radius: 50%;
+  border: 0.17rem solid var(--ink);
+  background: radial-gradient(circle at 35% 30%, #fff 0%, var(--rc) 55%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.relic-gem .ico {
+  width: 2rem;
+  height: 2rem;
+}
+.shrine-offer {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 0.7rem 1rem;
+}
+.shrine-offer .ico {
+  width: 2.4rem;
+  height: 2.4rem;
+}
+.shrine-grid .mcard {
+  cursor: default;
+}
+.shard-bar {
+  padding: 0 0.4rem 0.4rem;
+}
+.shard-bar .bar {
+  height: 1rem;
+}
+.shrine-grid .summon {
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  transform: translate(-50%, -50%);
+}
+@media (max-aspect-ratio: 1/1) {
+  .map-hud .title {
+    /* the ribbon is absolutely positioned, so the box needs a real width */
+    width: min(24rem, 86vw);
+    top: 4.6rem;
+  }
+  .map-hud .title .ribbon {
+    font-size: 1.2rem;
+    min-width: 0;
+    max-width: 100%;
+    padding: 0.3rem 1.6rem 0.45rem;
+  }
+  .map-hud .stars {
+    top: 8.4rem;
+  }
+  .bhud .hint-bubble {
+    white-space: normal;
+    max-width: 88vw;
+    text-align: center;
+    bottom: 7.6rem;
+  }
+  .rune-forge {
+    flex-direction: column;
+  }
+  .rune-side {
+    width: auto;
+  }
+  .team-slots .mcard,
+  .team-empty {
+    width: 5.6rem;
+  }
+  .team-empty {
+    height: 6.6rem;
+  }
+  .tower-wrap {
+    flex-direction: column;
+  }
+  .tower-floors {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  /* narrow screens: turn order sits below the quit/speed/auto buttons */
+  .bhud .order {
+    top: 4.4rem;
+  }
+  .boss-bar {
+    top: 9.2rem;
+  }
+}
+
+.bhud .order:empty {
+  display: none;
+}
+
+.tut-bubble .ico.inline {
+  display: inline-block;
+  width: 1.2rem;
+  height: 1.2rem;
+  vertical-align: -0.25rem;
+}
