@@ -3,12 +3,13 @@ import { UI } from '../ui.js';
 import { h, icon, fmt, bar } from '../dom.js';
 import { currentMain, claimMain, dailyList, claimDaily, dailyChestReady, claimDailyChest, achievementList, claimAchievement } from '../../systems/quests.js';
 import { isUnlocked } from '../../systems/player.js';
+import { MAIN_QUESTS } from '../../data/quests.js';
 
 export function rewardChips(reward) {
   const out = [];
   for (const [k, v] of Object.entries(reward || {})) {
     if (!v) continue;
-    if (k === 'chest') out.push(h('span.rw', null, icon('chest'), `${v[0].toUpperCase()}${v.slice(1)}`));
+    if (k === 'chest') out.push(h('span.rw', null, icon(`chest_${v}`), `${v[0].toUpperCase()}${v.slice(1)}`));
     else if (k === 'egg') out.push(h('span.rw', null, icon('egg'), typeof v === 'string' ? v : 'Egg'));
     else if (k === 'species') out.push(h('span.rw', null, icon('egg'), 'Egg'));
     else out.push(h('span.rw', null, icon(k === 'xp' ? 'xp' : k), fmt(v)));
@@ -45,7 +46,22 @@ export function openQuests(A, tab = 'main') {
       body.appendChild(h('div.main-goal.well', null, icon('quests'),
         h('div.grow', null, h('div.small.muted', null, 'CURRENT GOAL'), h('div.t', null, q.text), h('div', { style: { margin: '0.4rem 0' } }, bar(q.value / q.goal.n, null, `${fmt(q.value)} / ${fmt(q.goal.n)}`)), h('div.row.qrow', { style: { padding: 0 } }, h('span.small.muted', null, 'Reward:'), rewardChips(q.reward))),
         q.done ? claimBtn(() => claimMain()) : h('button.btn.sm.blue', { onclick: () => { UI.close(scr); A.goTo(q.goal); } }, 'Go')));
-      body.appendChild(h('div.small.muted', { style: { margin: '0.8rem 0.4rem' } }, `Story progress: ${G.state.quests.main} completed`));
+      const idx = G.state.quests.main;
+      body.appendChild(h('div.story-journey', null, h('span.small.muted', null, 'Story journey'), bar(idx / MAIN_QUESTS.length, '#5fc44a', `${idx} / ${MAIN_QUESTS.length}`)));
+      const next = MAIN_QUESTS.slice(idx + 1, idx + 4);
+      if (next.length) {
+        body.appendChild(h('div.q-sec', null, 'Up next'));
+        const wrap = h('div.qlist');
+        for (const n of next) wrap.appendChild(h('div.qrow.well.upcoming', null, icon('quests'), h('div.txt', null, h('div.t', null, n.text)), h('div.rw', null, rewardChips(n.reward))));
+        body.appendChild(wrap);
+      }
+      const done = MAIN_QUESTS.slice(Math.max(0, idx - 3), idx).reverse();
+      if (done.length) {
+        body.appendChild(h('div.q-sec', null, 'Completed'));
+        const wrap = h('div.qlist');
+        for (const n of done) wrap.appendChild(h('div.qrow.well.claimed', null, icon('check'), h('div.txt', null, h('div.t', null, n.text)), h('span.chip', null, 'Done')));
+        body.appendChild(wrap);
+      }
     } else if (cur === 'daily') {
       const list = dailyList();
       const wrap = h('div.qlist');
@@ -56,7 +72,7 @@ export function openQuests(A, tab = 'main') {
           d.claimed ? h('span.chip', null, 'Done') : d.done ? claimBtn(() => claimDaily(d.id)) : null));
       }
       const claimed = list.filter((x) => x.claimed).length;
-      wrap.appendChild(h('div.qrow.well', { style: { background: '#fff1c4' } }, icon('chest'), h('div.txt', null, h('div.t', null, 'Daily Chest — finish all daily quests'), bar(claimed / list.length, '#ffc83d', `${claimed} / ${list.length}`)),
+      wrap.appendChild(h('div.qrow.well', { style: { background: '#fff1c4' } }, icon(G.state.player.level >= 15 ? 'chest_gold' : 'chest_silver'), h('div.txt', null, h('div.t', null, 'Daily Chest — finish all daily quests'), bar(claimed / list.length, '#ffc83d', `${claimed} / ${list.length}`)),
         dailyChestReady() ? claimBtn(() => claimDailyChest()) : G.state.quests.daily.chest ? h('span.chip', null, 'Opened') : null));
       body.appendChild(wrap);
     } else {

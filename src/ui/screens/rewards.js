@@ -26,7 +26,7 @@ export function rewardItemEl(it, A, delay = 0) {
     A.eggThumb(it.sp).then((u) => u && (pic.src = u));
     n = 'Egg';
   } else if (it.kind === 'chest') {
-    pic = icon('chest');
+    pic = icon(`chest_${it.id}`);
     n = CHESTS[it.id].name.replace(' Chest', '');
   } else if (it.kind === 'rune') {
     pic = h('div.slot-card', { style: { width: '3.2rem', height: '3.2rem' } }, runeIcon(it.rune));
@@ -182,6 +182,17 @@ export function openWheel(A) {
 }
 
 // ---------------- Chests
+const RARITY_NAME = { common: 'Common', uncommon: 'Uncommon', rare: 'Rare', epic: 'Epic', legendary: 'Legendary', mythic: 'Mythic' };
+function chestRowLabel(o) {
+  if (o.egg) return `${RARITY_NAME[o.egg] || ''} Egg`;
+  if (o.rune) return 'Rune';
+  if (o.shards) return 'Shards';
+  if (o.gems) return 'Gems';
+  if (o.food) return 'Food';
+  return 'Gold';
+}
+const pct = (p) => (p >= 0.995 ? '100%' : p < 0.01 ? '<1%' : `${Math.round(p * 100)}%`);
+
 export function openChests(A) {
   const list = h('div.row', { style: { gap: '1rem', justifyContent: 'center', flexWrap: 'wrap', padding: '0.6rem' } });
   const scr = UI.panel({ key: 'chests', title: 'Chests', ribbon: 'gold', kind: 'modal', cls: 'wide', content: [list] });
@@ -194,11 +205,12 @@ export function openChests(A) {
       if (!n) continue;
       any = true;
       const c = CHESTS[id];
-      const ic = icon('chest');
-      ic.style.cssText = `width:5rem;height:5rem;filter:hue-rotate(${id === 'silver' ? 180 : id === 'mythic' ? 280 : id === 'gold' ? 20 : 0}deg) saturate(${id === 'silver' ? 0.2 : 1})`;
+      const ic = icon(`chest_${id}`);
+      ic.style.cssText = 'width:5rem;height:5rem';
       list.appendChild(h('div.egg-slot', { style: { width: '10rem' } }, h('span.chip', null, `×${n}`), ic, h('div.t', null, c.name),
         h('button.btn.sm.gold.wide', { onclick: () => { A.openChest(id); render(); if (!Object.values(G.state.inventory.chests).some(Boolean)) UI.close(scr); } }, 'Open'),
-        h('details', null, h('summary.tiny.muted', null, 'Odds'), h('div.odds', null, chestOdds(id).map((o) => h('span', null, `${Object.keys(o).find((k) => k !== 'w' && k !== 'p')}: ${(o.p * 100).toFixed(0)}%`))))));
+        h('details', null, h('summary.tiny.muted', null, 'Odds'),
+          h('div.odds', null, h('div.tiny.muted', null, `${c.rolls} different rewards`), ...chestOdds(id).map((o) => h('span', null, `${chestRowLabel(o)}: ${pct(o.p)}`))))));
     }
     if (!any) list.appendChild(h('div.dlg-text.muted', null, 'No chests. Earn them from quests, stars and the campaign!'));
   };

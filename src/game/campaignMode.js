@@ -203,7 +203,7 @@ export const Campaign = {
     const trackBar = bar(0, '#ffd84a');
     track.appendChild(trackBar);
     const chestEls = STAR_CHESTS.map((sc) => {
-      const c = h('div.sc', { style: { left: `${(sc.stars / 90) * 100}%` } }, icon('chest'), h('span.ol-s', null, `${sc.stars}`));
+      const c = h('div.sc', { style: { left: `${(sc.stars / 90) * 100}%` } }, icon(`chest_${sc.chest}`), h('span.ol-s', null, `${sc.stars}`));
       track.appendChild(c);
       return { sc, c };
     });

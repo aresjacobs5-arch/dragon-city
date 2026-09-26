@@ -74,10 +74,29 @@ function rollRange(r) {
   return Array.isArray(r) ? Math.round(r[0] + rand.next() * (r[1] - r[0])) : r;
 }
 
+// Every roll of a chest picks a different row of its table (weighted, without
+// replacement), so a chest always holds `rolls` distinct rewards. The odds the
+// UI shows are the exact chance that a chest contains each row.
+const _oddsCache = new Map();
 export function chestOdds(id) {
-  const t = CHESTS[id].table;
-  const total = t.reduce((s, x) => s + x.w, 0);
-  return t.map((x) => ({ ...x, p: x.w / total }));
+  if (_oddsCache.has(id)) return _oddsCache.get(id);
+  const def = CHESTS[id];
+  const t = def.table;
+  const k = Math.min(def.rolls, t.length);
+  const contains = t.map(() => 0);
+  const walk = (used, p, depth) => {
+    if (depth === k) {
+      for (let i = 0; i < t.length; i++) if (used & (1 << i)) contains[i] += p;
+      return;
+    }
+    let rest = 0;
+    for (let i = 0; i < t.length; i++) if (!(used & (1 << i))) rest += t[i].w;
+    for (let i = 0; i < t.length; i++) if (!(used & (1 << i))) walk(used | (1 << i), (p * t[i].w) / rest, depth + 1);
+  };
+  walk(0, 1, 0);
+  const out = t.map((x, i) => ({ ...x, p: contains[i] }));
+  _oddsCache.set(id, out);
+  return out;
 }
 
 export function openChest(id) {
@@ -87,14 +106,16 @@ export function openChest(id) {
   const def = CHESTS[id];
   const reward = {};
   const items = [];
-  for (let i = 0; i < def.rolls; i++) {
-    const total = def.table.reduce((s, x) => s + x.w, 0);
+  const pool = [...def.table];
+  for (let i = 0; i < def.rolls && pool.length; i++) {
+    const total = pool.reduce((s, x) => s + x.w, 0);
     let r = rand.next() * total;
-    let row = def.table[0];
-    for (const x of def.table) if ((r -= x.w) <= 0) {
+    let row = pool[pool.length - 1];
+    for (const x of pool) if ((r -= x.w) <= 0) {
       row = x;
       break;
     }
+    pool.splice(pool.indexOf(row), 1);
     if (row.gold) reward.gold = (reward.gold || 0) + rollRange(row.gold);
     if (row.food) reward.food = (reward.food || 0) + rollRange(row.food);
     if (row.gems) reward.gems = (reward.gems || 0) + rollRange(row.gems);

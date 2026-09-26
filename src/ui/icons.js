@@ -59,6 +59,11 @@ function elementBadge(el) {
   return `<circle cx="32" cy="33.5" r="27" fill="${d}"/><circle cx="32" cy="32" r="26" fill="${c}" ${S}/><path d="M13 26a20 20 0 0 1 24-16" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".45"/>${EL_GLYPH[el] || ''}`;
 }
 
+// Treasure chest in tier colours: box, lid, metal bands, lock gem.
+function chestSvg(box, lid, band, gem, sparkle = false) {
+  return `<path d="M8 28h48v24a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4z" fill="${box}" ${S}/><path d="M8 28c0-12 8-18 24-18s24 6 24 18z" fill="${lid}" ${S}/><path d="M12 22c2-5 8-8 14-8" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".45"/><path d="M8 28h48" ${S}/><path d="M20 12v44M44 12v44" stroke="${band}" stroke-width="5"/><path d="M20 12v44M44 12v44" stroke="${INK}" stroke-width="1.5" opacity=".45"/><rect x="26" y="24" width="12" height="12" rx="3" fill="${gem}" ${S2}/><circle cx="30" cy="28" r="1.8" fill="#fff" opacity=".8"/>${sparkle ? `<path d="M54 4c1 5 3 7 8 8-5 1-7 3-8 8-1-5-3-7-8-8 5-1 7-3 8-8z" fill="#fff" ${S2}/>` : ''}`;
+}
+
 const ICONS = {
   // ---------------- resources
   gold: `<ellipse cx="32" cy="37" rx="23" ry="21" fill="#d98a14" ${S}/><circle cx="32" cy="31" r="22" fill="#ffc83d" ${S}/><circle cx="32" cy="31" r="14.5" fill="none" stroke="#e39b1c" stroke-width="3"/><polygon points="${star5(32, 31.5, 9, 4.2)}" fill="#e39b1c"/><path d="M17 24a16 16 0 0 1 12-9" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".7"/>`,
@@ -111,7 +116,11 @@ const ICONS = {
   starEmpty: `<polygon points="${star5(32, 34, 26, 12)}" fill="#5a4a5e" ${S}/>`,
   heart: `<path d="M32 54S8 40 8 24a12 12 0 0 1 24-4 12 12 0 0 1 24 4c0 16-24 30-24 30z" fill="#ff5a6e" ${S}/><ellipse cx="19" cy="22" rx="5" ry="4" ${HL}/>`,
   egg: `<path d="M32 6c12 0 22 20 22 32a22 22 0 0 1-44 0C10 26 20 6 32 6z" fill="#fff6e3" ${S}/><path d="M14 40c8 4 14-4 18 0s10 4 18 0" fill="none" stroke="#ff8fb8" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="24" r="4" fill="#8fd8ff"/><circle cx="40" cy="30" r="3" fill="#ffd23f"/><ellipse cx="22" cy="16" rx="4" ry="6" transform="rotate(25 22 16)" ${HL}/>`,
-  chest: `<path d="M8 28h48v24a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4z" fill="#b8783a" ${S}/><path d="M8 28c0-12 8-18 24-18s24 6 24 18z" fill="#d8904a" ${S}/><path d="M8 28h48" ${S}/><path d="M20 12v44M44 12v44" stroke="#ffc83d" stroke-width="5"/><path d="M20 12v44M44 12v44" stroke="${INK}" stroke-width="1.5" opacity=".5"/><rect x="26" y="24" width="12" height="12" rx="3" fill="#ffc83d" ${S2}/>`,
+  chest: chestSvg('#b8783a', '#d8904a', '#ffc83d', '#ffc83d'),
+  chest_wooden: chestSvg('#b8783a', '#d8904a', '#8a5a2a', '#ffc83d'),
+  chest_silver: chestSvg('#8ea2bc', '#b8c8dc', '#e8eef8', '#5fb8f8'),
+  chest_gold: chestSvg('#e8a526', '#ffc83d', '#fff1a8', '#ff5a6e'),
+  chest_mythic: chestSvg('#c04aa8', '#ff6fc0', '#ffd23f', '#6ff0e0', true),
   crown: `<path d="M8 46 12 18l12 12 8-18 8 18 12-12 4 28z" fill="#ffc83d" ${S}/><path d="M10 46h44v8H10z" fill="#e39b1c" ${S}/><circle cx="32" cy="36" r="4" fill="#ff4f7b" ${S2}/>`,
   skull: `<path d="M32 6c14 0 24 9 24 22 0 7-4 11-8 13v9H16v-9c-4-2-8-6-8-13C8 15 18 6 32 6z" fill="#f4ecdc" ${S}/><circle cx="22" cy="28" r="6" fill="${INK}"/><circle cx="42" cy="28" r="6" fill="${INK}"/><path d="M30 38h4l-2-5z" fill="${INK}"/><path d="M24 50v6M32 50v6M40 50v6" ${S2}/>`,
   question: `<circle cx="32" cy="32" r="24" fill="#b58cff" ${S}/><path d="M24 24a8 8 0 1 1 11 8c-2 1-3 2-3 5" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round"/><circle cx="32" cy="46" r="3.5" fill="#fff"/>`,

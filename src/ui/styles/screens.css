@@ -8,6 +8,14 @@
   pointer-events: auto;
   animation: scrIn 0.22s ease-out;
 }
+#screens > .scr.covered {
+  filter: brightness(0.62) saturate(0.85);
+  transition: filter 0.2s;
+}
+#screens > .scr.covered-deep {
+  filter: brightness(0.5) saturate(0.7);
+  opacity: 0.3;
+}
 #screens > .scr.closing {
   animation: scrOut 0.16s ease-in forwards;
   pointer-events: none;
@@ -758,6 +766,43 @@
 }
 .qrow.ready {
   background: #eaffd6;
+}
+.qrow.upcoming {
+  background: transparent;
+  box-shadow: none;
+  border: 0.14rem dashed var(--paper4);
+}
+.qrow.upcoming > .ico {
+  filter: grayscale(1);
+  opacity: 0.55;
+}
+.qrow.upcoming .txt .t {
+  color: var(--muted);
+  margin: 0;
+}
+.qrow.upcoming .rw {
+  opacity: 0.75;
+}
+.qrow.claimed .txt .t {
+  margin: 0;
+}
+.q-sec {
+  margin: 0.9rem 0.5rem 0.1rem;
+  font-family: 'Lilita One', sans-serif;
+  font-size: 0.95rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.story-journey {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin: 0.8rem 0.5rem 0;
+}
+.story-journey .bar {
+  flex: 1;
+  height: 0.95rem;
 }
 .main-goal {
   display: flex;

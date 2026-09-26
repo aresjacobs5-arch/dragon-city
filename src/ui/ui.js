@@ -89,6 +89,14 @@ export const UI = {
       if (s.solo) soloIdx = i;
     });
     this.stack.forEach((s, i) => (s.el.style.visibility = i < soloIdx ? 'hidden' : ''));
+    // windows underneath a dimmed window step back so the top one reads clearly
+    let cover = 0;
+    for (let i = this.stack.length - 1; i >= 0; i--) {
+      const s = this.stack[i];
+      s.el.classList.toggle('covered', cover >= 0.5);
+      s.el.classList.toggle('covered-deep', cover >= 0.65);
+      cover = Math.max(cover, s.dim ?? 0.5);
+    }
     let dim = 0;
     let hideHud = false;
     let hideWorld = false;
