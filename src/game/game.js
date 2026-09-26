@@ -36,6 +36,7 @@ import { addXP, isUnlocked, elementUnlocked } from '../systems/player.js';
 import { stat } from '../systems/stats.js';
 import { computeOffline } from '../systems/offline.js';
 import { stageForLevel } from '../render/monsters/builder.js';
+import { formName, FORM_LABEL, EVOLVE_LEVELS } from '../data/evolutions.js';
 import { Tutorial } from './tutorial.js';
 import { Campaign } from './campaignMode.js';
 
@@ -225,7 +226,7 @@ export const Game = {
       G.world.camCtl.enabled = false;
       G.engine.setWorld(sc);
       UI.open(scr);
-      top.appendChild(h('div.big-title', { style: { fontSize: '2.4rem' } }, `${M.monsterName(m)} is evolving!`));
+      top.appendChild(h('div.big-title', { style: { fontSize: '2.4rem' } }, `${m.nick || formName(def, fromStage)} is evolving!`));
     }, { sound: () => Audio.play('whoosh') });
     Audio.play('charge');
     sc.playEvolve(def, fromStage, toStage, {
@@ -238,8 +239,15 @@ export const Game = {
       onReveal: () => {
         Audio.voice(def, { stage: toStage });
         top.innerHTML = '';
-        top.append(h('div.big-title.gold', { style: { fontSize: '3rem' } }, 'EVOLVED!'), h('div.nm.display.ol', null, M.monsterName(m)), h('div.rar.rar-chip', { style: { background: RARITIES[def.rarity].color } }, toStage === 2 ? 'Final form' : 'Grown up'));
-        bottom.append(h('button.btn.lg.green', { onclick: () => finish() }, icon('check'), 'Awesome!'), h('div.small.ol-s', null, 'Evolved monsters are stronger and earn more gold.'));
+        const newName = formName(def, toStage);
+        top.append(
+          h('div.big-title.gold', { style: { fontSize: '3rem' } }, 'EVOLVED!'),
+          h('div.nm.display.ol', null, newName),
+          h('div.ol-s.display', { style: { fontSize: '1.1rem', zIndex: 2 } }, m.nick ? `${m.nick} is now a ${newName}` : `${formName(def, fromStage)} evolved into ${newName}`),
+          h('div.rar.rar-chip', { style: { background: RARITIES[def.rarity].color } }, FORM_LABEL[toStage]));
+        const next = EVOLVE_LEVELS[toStage];
+        bottom.append(h('button.btn.lg.green', { onclick: () => finish() }, icon('check'), 'Awesome!'),
+          h('div.small.ol-s', null, next ? `Next evolution at level ${next}: ${formName(def, toStage + 1)}` : 'This is its final form!'));
         scr.el.onpointerdown = null;
       },
     });
@@ -415,7 +423,7 @@ export const Game = {
     bus.on('monster:levelup', ({ m, evolved, from, to }) => {
       if (!evolved) return;
       G.world.syncMonsters();
-      const fromStage = from >= 20 ? 2 : from >= 10 ? 1 : 0;
+      const fromStage = stageForLevel(from);
       const toStage = stageForLevel(to);
       if (toStage > fromStage) this.evoQueue.push({ m, fromStage, toStage });
     });
@@ -1156,7 +1164,7 @@ Game.revealMonster = async function (m) {
       const isNew = G.state.stats[`seen_${m.sp}`] !== 1;
       G.state.stats[`seen_${m.sp}`] = 1;
       if (isNew) top.appendChild(h('div.big-title.gold', { style: { fontSize: '2.6rem' } }, 'NEW MONSTER!'));
-      top.append(h('div.nm.display.ol', null, def.name), h('div.rar.rar-chip', { style: { background: R.color } }, R.name), h('div.els', null, def.elements.map((e) => icon(`el_${e}`))));
+      top.append(h('div.nm.display.ol', null, M.monsterName(m)), h('div.rar.rar-chip', { style: { background: R.color } }, R.name), h('div.els', null, def.elements.map((e) => icon(`el_${e}`))));
       const hab = B.compatibleHabitats(m.sp).filter((b) => B.habitatHasRoom(b)).sort((a, b) => b.level - a.level)[0];
       const place = h('button.btn.lg.green', { 'data-tut': 'reveal-place', onclick: () => finish(hab) }, icon('habitat'), hab ? 'PLACE' : 'CONTINUE');
       bottom.append(place, h('div.small.ol-s', null, hab ? `Moves into your ${BUILDINGS[hab.type].name}` : `Build a ${ELEMENTS[def.elements[0]].name} Habitat to give it a home`));

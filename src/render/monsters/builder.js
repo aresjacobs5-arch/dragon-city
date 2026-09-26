@@ -3,11 +3,16 @@ import { RigBuilder, createSkeleton } from './rig.js';
 import { ARCHETYPES } from './archetypes.js';
 import { Animator } from './animator.js';
 import { creatureMaterial, applyPattern } from '../materials.js';
+import { evolveModel } from './evolve.js';
+import { stageForLevel } from '../../data/evolutions.js';
+
+export { stageForLevel };
 
 // Monster templates (merged skinned geometry + bone definitions) are cached per
 // species+stage; each on-screen monster gets its own skeleton and animator.
 
-export const STAGE_SCALE = [0.78, 0.95, 1.12];
+// babies are small; each evolution is a real growth spurt
+export const STAGE_SCALE = [0.74, 1.0, 1.24];
 export const RARITY_SIZE = { common: 1, uncommon: 1.04, rare: 1.08, epic: 1.16, legendary: 1.26, mythic: 1.32, ancient: 1.38 };
 const cache = new Map();
 
@@ -29,10 +34,6 @@ const AURA = {
 };
 const _av = new THREE.Vector3();
 
-export function stageForLevel(level) {
-  return level >= 20 ? 2 : level >= 10 ? 1 : 0;
-}
-
 function cloneModel(model) {
   return JSON.parse(JSON.stringify(model));
 }
@@ -42,7 +43,7 @@ export function getTemplate(species, stage = 0) {
   let t = cache.get(key);
   if (t) return t;
   const rb = new RigBuilder();
-  const model = cloneModel(species.model);
+  const model = evolveModel(cloneModel(species.model), species, stage);
   const st = { s: stage, g: stage / 2 };
   const fn = ARCHETYPES[model.arch] || ARCHETYPES.quad;
   const info = fn(rb, model, st);
@@ -55,6 +56,7 @@ export function getTemplate(species, stage = 0) {
     emitters: emitters || [],
     info,
     arch: model.arch,
+    model,
     scale: (model.size || 1) * STAGE_SCALE[stage] * (RARITY_SIZE[species.rarity] || 1) * (species.boss ? 2.2 : 1),
     height: bb.max.y,
     radius: Math.max(bb.max.x - bb.min.x, bb.max.z - bb.min.z) * 0.5,
@@ -81,9 +83,9 @@ export class MonsterView {
     this.inner.scale.setScalar(tpl.scale);
     this.group.add(this.inner);
     this.material = creatureMaterial({ rim, cloud });
-    const pat = species.model.pattern;
+    const pat = tpl.model.pattern;
     if (pat) {
-      const colors = species.model.colors || {};
+      const colors = tpl.model.colors || {};
       applyPattern(this.material, { ...pat, color: colors[pat.color] || pat.color || colors.glow || colors.accent });
     }
     const sk = createSkeleton(tpl.bones);

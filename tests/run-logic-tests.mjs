@@ -32,6 +32,36 @@ for (const m of [...MONSTERS, ...Object.values(BOSSES)]) {
 }
 ok(MONSTERS.length >= 50, `monster count ${MONSTERS.length}`);
 
+console.log('# evolutions');
+{
+  const { stageForLevel, formName, FORM_NAMES, EVOLVE_LEVELS } = await import('../src/data/evolutions.js');
+  ok(stageForLevel(6) === 0 && stageForLevel(7) === 1 && stageForLevel(14) === 1 && stageForLevel(15) === 2, `evolves at ${EVOLVE_LEVELS.join(' and ')}`);
+  const names = new Set(MONSTERS.map((m) => m.name.toLowerCase()));
+  let missing = 0, clash = 0;
+  for (const m of MONSTERS) {
+    if (!FORM_NAMES[m.id]) missing++;
+    for (const n of FORM_NAMES[m.id] || []) {
+      if (names.has(n.toLowerCase())) clash++;
+      names.add(n.toLowerCase());
+    }
+  }
+  ok(missing === 0 && clash === 0, `${MONSTERS.length} species x 3 named forms (missing ${missing}, duplicate names ${clash})`);
+  ok(formName(MONSTERS[0], 2) !== MONSTERS[0].name, `${MONSTERS[0].name} -> ${formName(MONSTERS[0], 1)} -> ${formName(MONSTERS[0], 2)}`);
+  const { getTemplate } = await import('../src/render/monsters/builder.js');
+  let built = 0, failed = [];
+  for (const m of MONSTERS) {
+    for (let s = 0; s < 3; s++) {
+      try {
+        const t = getTemplate(m, s);
+        if (t.geometry.attributes.position.count > 0) built++;
+      } catch (e) {
+        failed.push(`${m.id}:${s} ${e.message}`);
+      }
+    }
+  }
+  ok(failed.length === 0, `built ${built} monster forms${failed.length ? ' FAILED ' + failed.slice(0, 3).join('; ') : ''}`);
+}
+
 console.log('# new game + buildings');
 G.state = createNewState(1_000_000_000_000);
 G.timeOffset = 1_000_000_000_000 - Date.now();

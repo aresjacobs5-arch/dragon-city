@@ -10,7 +10,7 @@ import { buildingWorldPos } from '../render/world/homeView.js';
 import { BUILDINGS } from '../data/buildings.js';
 import { xpToNext } from '../data/unlocks.js';
 import * as B from '../systems/buildings.js';
-import { species } from '../systems/monsters.js';
+import { species, monsterName } from '../systems/monsters.js';
 import { getStat } from '../systems/stats.js';
 import { eggReady } from '../systems/hatchery.js';
 import { breedingState } from '../systems/breeding.js';
@@ -188,12 +188,12 @@ const STEPS = [
       if (!m) return null;
       if (isOpen('mdetail')) {
         if (topKey() !== 'mdetail') return null;
-        return { el: q('[data-tut="feed-level"]') || q('[data-tut="feed"]'), text: `Feed ${species(m.sp).name} to level it up!` };
+        return { el: q('[data-tut="feed-level"]') || q('[data-tut="feed"]'), text: `Feed ${monsterName(m)} to level it up!` };
       }
       if (UI.stack.length) return null;
       const a = G.world.actorFor(m.id);
       G.world.attention = m.id;
-      if (a) return { world: a.view.topPoint(new THREE.Vector3()), text: `Tap <b>${species(m.sp).name}</b>!` };
+      if (a) return { world: a.view.topPoint(new THREE.Vector3()), text: `Tap <b>${monsterName(m)}</b>!` };
       return { el: HUD.nav.monsters, text: 'Open your <b>Monsters</b>.' };
     }),
   },

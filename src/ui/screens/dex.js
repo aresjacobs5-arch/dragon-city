@@ -8,7 +8,8 @@ import { ABILITIES, describeAbility } from '../../data/abilities.js';
 import { STATUSES } from '../../data/statuses.js';
 import { speciesCard, rarityChip, elIcons, blend } from './monsters.js';
 import { MonsterStage } from '../../render/monsterStage.js';
-import { ownedCount, shardsFor, summonCost } from '../../systems/monsters.js';
+import { ownedCount, shardsFor, summonCost, formsReached } from '../../systems/monsters.js';
+import { formName, FORM_LABEL, EVOLVE_LEVELS } from '../../data/evolutions.js';
 
 const statusNames = Object.fromEntries(Object.entries(STATUSES).map(([k, v]) => [k, v.name]));
 
@@ -55,14 +56,27 @@ export function openDexEntry(def, A) {
   const vp = h('div.vp');
   const stage = h('div.stage.pe', null, vp);
   const ms = new MonsterStage({ bg: blend(RARITIES[def.rarity].color, '#ffffff', owned ? 0.72 : 0.35) });
-  let stg = owned ? 1 : 1;
+  // show the most advanced form the keeper has raised; later forms stay secret
+  const reached = owned ? Math.max(0, formsReached(def.id)) : -1;
+  let stg = Math.max(0, reached);
   ms.setMonster(def, stg);
   if (!owned) ms.setSilhouette(true);
   ms.bindDrag(vp);
   const viewport = { el: vp, scene: ms.scene, camera: ms.camera, update: (dt) => ms.update(dt) };
-  stage.appendChild(h('div.top', null, h('div.col', { style: { gap: '0.3rem' } }, h('div.nm.display.ol', null, owned ? def.name : '???'), h('div.row', null, rarityChip(def.rarity))), h('div.grow'), owned || G.state.dex[def.id] ? elIcons(def.elements) : null));
+  const nameEl = h('div.nm.display.ol', null, owned ? formName(def, stg) : '???');
+  const formEl = h('span.chip', null, FORM_LABEL[stg]);
+  stage.appendChild(h('div.top', null, h('div.col', { style: { gap: '0.3rem' } }, nameEl, h('div.row', null, rarityChip(def.rarity), owned ? formEl : null)), h('div.grow'), owned || G.state.dex[def.id] ? elIcons(def.elements) : null));
   if (owned) {
-    const stages = h('div.tabs', { style: { position: 'absolute', bottom: '0.8rem', left: '0.8rem' } }, ['Baby', 'Adult', 'Elder'].map((n, i) => h(`button.tab${i === stg ? '.on' : ''}`, { onclick: (e) => { stg = i; ms.setMonster(def, i); [...stages.children].forEach((c, k) => c.classList.toggle('on', k === i)); } }, n)));
+    const show = (i) => {
+      stg = i;
+      const known = i <= reached;
+      ms.setMonster(def, i);
+      ms.setSilhouette(!known);
+      nameEl.textContent = known ? formName(def, i) : '???';
+      formEl.textContent = known ? FORM_LABEL[i] : `Evolves at level ${EVOLVE_LEVELS[i - 1]}`;
+      [...stages.children].forEach((c, k) => c.classList.toggle('on', k === i));
+    };
+    const stages = h('div.tabs.form-tabs', null, [0, 1, 2].map((i) => h(`button.tab${i === stg ? '.on' : ''}`, { onclick: () => show(i) }, i <= reached ? formName(def, i) : `Lv ${EVOLVE_LEVELS[i - 1]}`)));
     stage.appendChild(stages);
   }
   const side = h('div.side.scroll');

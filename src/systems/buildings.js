@@ -1,4 +1,5 @@
 import { G } from '../game/G.js';
+import { EVOLVE_LEVELS } from '../data/evolutions.js';
 import { BUILDINGS, farmLimit } from '../data/buildings.js';
 import { ISLANDS, ISLAND_BY_ID } from '../data/islands.js';
 import { CROP_BY_ID } from '../data/crops.js';
@@ -577,7 +578,7 @@ export function tickBuildings(now = G.now()) {
     if (m) {
       m.lvl = Math.min(m.lvl + 1, 60);
       m.xp = 0;
-      G.bus.emit('monster:levelup', { m, from: m.lvl - 1, to: m.lvl, evolved: m.lvl === 10 || m.lvl === 20, source: 'academy' });
+      G.bus.emit('monster:levelup', { m, from: m.lvl - 1, to: m.lvl, evolved: EVOLVE_LEVELS.includes(m.lvl), source: 'academy' });
       G.bus.emit('monster:changed', { m });
     }
     G.markDirty();

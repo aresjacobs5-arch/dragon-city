@@ -7,6 +7,7 @@ import { ABILITIES, describeAbility } from '../../data/abilities.js';
 import { STATUSES } from '../../data/statuses.js';
 import { RUNE_TYPES, RUNE_TIERS, RUNE_SLOTS_BY_LEVEL, RELICS, RELIC_BY_ID } from '../../data/rewards.js';
 import { BUILDINGS } from '../../data/buildings.js';
+import { formName, EVOLVE_LEVELS } from '../../data/evolutions.js';
 import {
   species, monStats, power, stageOf, feedCost, foodToNext, maxLevel, canFeed, ROLES, monsterName, sortMonsters,
   rankCost, rankGoldCost, shardsFor, MAX_RANK, releaseValue, ownedCount, goldRate, RANK_LEVEL_CAP,
@@ -56,6 +57,24 @@ export function monsterStory(m) {
   const parts = [from, `joined ${timeAgo(m.got || G.now())}`];
   if (m.wins) parts.push(`${m.wins} ${m.wins === 1 ? 'victory' : 'victories'} together`);
   return parts.join(' · ');
+}
+
+// Baby -> level 7 -> level 15: the monster's three forms, future ones hidden.
+export function evolutionLine(m, A) {
+  const def = species(m.sp);
+  const cur = stageOf(m);
+  const row = h('div.evo-line');
+  for (let i = 0; i < 3; i++) {
+    if (i) row.appendChild(h('div.evo-arrow', null, icon('arrowR')));
+    const known = i <= cur;
+    const img = h('img', { alt: '' });
+    A.portrait(m.sp, i, !known).then((u) => u && (img.src = u));
+    row.appendChild(h(`div.evo-form${i === cur ? '.cur' : ''}${known ? '' : '.locked'}`, null,
+      h('div.pic', null, img),
+      h('div.t', null, known ? formName(def, i) : '???'),
+      h('div.lv', null, i === 0 ? 'Lv 1' : `Lv ${EVOLVE_LEVELS[i - 1]}`)));
+  }
+  return row;
 }
 
 export function monsterCard(m, onClick, A, { tag = null, dim = false, sel = false } = {}) {
@@ -261,6 +280,7 @@ export function openMonsterDetail(m, A, { tab = 'info' } = {}) {
         h('div.grow'),
         h('button.btn.sm.blue', { onclick: () => A.moveMonster(m) }, icon('move'), home ? 'Move' : 'Place')));
       const weak = def.elements.flatMap((e) => weaknessesOf(e));
+      content.appendChild(evolutionLine(m, A));
       if (weak.length) content.appendChild(h('div.row.small.muted', { style: { marginBottom: '0.5rem', flexWrap: 'wrap' } }, 'Weak to', [...new Set(weak)].map((e) => icon(`el_${e}`))));
       for (const id of def.abilities) {
         const ab = ABILITIES[id];

@@ -1,4 +1,5 @@
 import { G } from '../game/G.js';
+import { stageForLevel, formName } from '../data/evolutions.js';
 import { MONSTER_BY_ID, MONSTERS } from '../data/monsters.js';
 import { BOSSES } from '../data/bosses.js';
 import { RARITIES, rarityIdx } from '../data/rarities.js';
@@ -28,7 +29,7 @@ export function maxLevel(m) {
 }
 
 export function stageOf(m) {
-  return m.lvl >= 20 ? 2 : m.lvl >= 10 ? 1 : 0;
+  return stageForLevel(m.lvl);
 }
 
 // Food needed to go from level L to L+1.
@@ -237,8 +238,28 @@ export function discoveredCount() {
   return MONSTERS.filter((m) => G.state.dex[m.id] === 2).length;
 }
 
+// Highest form of a species the keeper has raised (for the Monsterdex).
+export function formsReached(sp) {
+  let best = -1;
+  const rec = G.state.dexForms && G.state.dexForms[sp];
+  if (rec !== undefined) best = rec;
+  for (const m of G.state.monsters) if (m.sp === sp) best = Math.max(best, stageOf(m));
+  return best;
+}
+function noteForm(m) {
+  const f = (G.state.dexForms = G.state.dexForms || {});
+  const s = stageOf(m);
+  if ((f[m.sp] ?? -1) < s) {
+    f[m.sp] = s;
+    G.markDirty();
+  }
+}
+G.bus.on('monster:levelup', ({ m }) => m && noteForm(m));
+G.bus.on('monster:added', ({ m }) => m && noteForm(m));
+
+// A nickname if the keeper gave one, otherwise the name of its current form.
 export function monsterName(m) {
-  return m.nick || species(m.sp).name;
+  return m.nick || formName(species(m.sp), stageOf(m));
 }
 
 export function sortMonsters(list, key = 'power') {

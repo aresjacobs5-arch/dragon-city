@@ -1,4 +1,5 @@
 import { ABILITIES } from '../data/abilities.js';
+import { formName, stageForLevel } from '../data/evolutions.js';
 import { STATUSES } from '../data/statuses.js';
 import { effectiveness } from '../data/elements.js';
 import { RELIC_BY_ID } from '../data/rewards.js';
@@ -25,7 +26,7 @@ export function makeUnit(mon, side, slot, extra = {}) {
     monId: mon.id ?? null,
     sp: mon.sp,
     def,
-    name: def.name,
+    name: mon.nick || formName(def, def.boss ? 0 : stageForLevel(mon.lvl || 1)),
     lvl: mon.lvl,
     rank: mon.rank || 0,
     elements: def.elements,

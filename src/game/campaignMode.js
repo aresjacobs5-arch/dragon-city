@@ -9,6 +9,7 @@ import { RNG } from '../core/rng.js';
 import { MapWorld } from '../render/map/mapWorld.js';
 import { Arena } from '../render/battle/arena.js';
 import { stageForLevel } from '../render/monsters/builder.js';
+import { formName } from '../data/evolutions.js';
 import { Battle } from '../systems/battle.js';
 import * as CP from '../systems/campaign.js';
 import { WORLDS, STAGES_PER_WORLD, getStage, STAR_CHESTS } from '../data/campaign.js';
@@ -353,7 +354,7 @@ export const Campaign = {
     const art = h('div.art', null, ph, img, h('div.els', null, def.elements.map((e) => icon(`el_${e}`))), h('div.lv.ol-s', null, `Lv ${lvl}`));
     if (elite) art.appendChild(h('div.tag', null, 'ELITE'));
     if (boss) art.appendChild(h('div.tag', null, 'BOSS'));
-    card.append(art, h('div.name', null, def.name), h('div.rbar'));
+    card.append(art, h('div.name', null, boss ? def.name : formName(def, stageForLevel(lvl))), h('div.rbar'));
     this.A.portrait(sp, boss ? 0 : stageForLevel(lvl)).then((u) => {
       if (u) {
         img.src = u;
