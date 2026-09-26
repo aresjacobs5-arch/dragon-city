@@ -61,6 +61,7 @@ export class IsoCameraController {
 
   _down(e) {
     if (!this.enabled) return;
+    this.lastInput = performance.now();
     this.dom.setPointerCapture && this.dom.setPointerCapture(e.pointerId);
     this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, t: performance.now() });
     this.flight = null;
@@ -139,6 +140,7 @@ export class IsoCameraController {
   }
 
   _wheel(e) {
+    this.lastInput = performance.now();
     if (!this.enabled) return;
     e.preventDefault();
     const before = this.groundPoint(e.clientX, e.clientY, new THREE.Vector3());

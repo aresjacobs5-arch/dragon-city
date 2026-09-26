@@ -331,10 +331,21 @@ export const Game = {
     if (G.mode !== 'island' || this.busy) return;
     const world = G.world;
     if (world.placing) {
+      // ignore taps while the camera is still flying to the building: the
+      // confirm button moves with it and a near-miss must not move the ghost
+      if (world.camCtl.flight) return;
+      const p = world.placing;
       const gp = world.camCtl.groundPoint(x, y, new THREE.Vector3());
-      if (gp) {
-        const cell = world.cellAt(gp);
-        if (cell) world.movePlacingTo(cell.island, cell.x, cell.z);
+      const cell = gp && world.cellAt(gp);
+      if (!cell) return;
+      if (B.canPlace(p.type, cell.island, cell.x, cell.z, p.buildingId)) {
+        world.movePlacingTo(cell.island, cell.x, cell.z);
+      } else {
+        // tapped a blocked spot: snap to the closest free spot around it
+        const [w, d] = BUILDINGS[p.type].size;
+        const s = B.findSpot(p.type, cell.island, cell.x + w / 2, cell.z + d / 2, p.buildingId);
+        if (s && Math.hypot(s.x - cell.x, s.z - cell.z) <= 3) world.movePlacingTo(cell.island, s.x, s.z);
+        else Audio.play('error');
       }
       return;
     }

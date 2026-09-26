@@ -56,6 +56,13 @@ class MonsterActor {
     const g = this.view.group;
     const an = this.view.animator;
     this.timer -= dt;
+    // the tutorial can ask a monster to stay put (easy to tap on small screens)
+    const held = this.home.attention === this.m.id;
+    if (held && this.state !== 'idle') {
+      this.state = 'idle';
+      this.timer = 0.3;
+      an.setState('idle');
+    }
     if (this.state === 'walk') {
       _v.copy(this.target).sub(g.position);
       _v.y = 0;
@@ -89,8 +96,11 @@ class MonsterActor {
         an.play('jump', { intensity: 0.6 });
       }
     } else if (this.timer <= 0) {
-      const r = Math.random();
-      if (r < 0.55) {
+      const r = held ? 0.9 : Math.random();
+      if (held && Math.random() < 0.3) {
+        an.play('happy');
+        this.timer = 2;
+      } else if (r < 0.55) {
         const a = Math.random() * Math.PI * 2;
         const rr = Math.sqrt(Math.random()) * this.radius;
         this.target.set(this.center.x + Math.cos(a) * rr, 0, this.center.z + Math.sin(a) * rr);
@@ -524,7 +534,7 @@ export class HomeView extends HomeWorld {
       const pb = eng.project(_pv.set(base.x, base.y + a.view.worldHeight * 0.45, base.z), this.camera, _po1);
       if (!pb.visible) continue;
       const pt = eng.project(_pv.set(base.x, base.y + a.view.worldHeight, base.z), this.camera, _po2);
-      const r = Math.max(24, Math.abs(pb.y - pt.y) * 1.25);
+      const r = Math.max(COARSE ? 36 : 24, Math.abs(pb.y - pt.y) * 1.25);
       const d = Math.hypot(pb.x - clientX, pb.y - clientY);
       if (d < r && d < bd) {
         bd = d;
@@ -715,6 +725,8 @@ export class HomeView extends HomeWorld {
   }
 }
 
+// fingers need a bigger target than a mouse pointer
+const COARSE = typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches;
 let _mistMat = null;
 function lockedMistMaterial() {
   if (!_mistMat) _mistMat = new THREE.MeshLambertMaterial({ color: '#f4f8ff', emissive: '#8a9ac0', emissiveIntensity: 0.4, transparent: true, opacity: 0.93 });

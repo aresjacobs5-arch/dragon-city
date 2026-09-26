@@ -50,7 +50,11 @@ const marker = (key) => {
 // Walks the player through buying + placing a building from the shop.
 function buildFlow(type, tab, intro) {
   const name = BUILDINGS[type].name;
-  if (placing(type)) return { el: q('[data-tut="place-ok"]'), text: `Drag it where you like, then tap ${iconSvg('check', 'inline')} to build!` };
+  if (placing(type)) {
+    const p = G.world.placing;
+    if (!p.valid) return { world: p.group.position.clone().setY(0.8), text: 'That spot is blocked. Drag it onto open grass!' };
+    return { el: q('[data-tut="place-ok"]'), text: `Drag it where you like, then tap ${iconSvg('check', 'inline')} to build!` };
+  }
   if (isOpen('shop')) {
     const scr = UI.find('shop');
     if (scr.tab && scr.tab() !== tab) return { el: q(`[data-tut="tab-${tab}"]`), text: `Open the <b>${tab[0].toUpperCase() + tab.slice(1)}</b> tab.` };
@@ -177,6 +181,7 @@ const STEPS = [
   {
     id: 'feed',
     enter: () => ensureFood(40),
+    exit: () => G.world && (G.world.attention = null),
     done: () => G.state.monsters.some((m) => m.lvl >= 2),
     guide: () => mainIsland(() => {
       const m = G.state.monsters[0];
@@ -187,6 +192,7 @@ const STEPS = [
       }
       if (UI.stack.length) return null;
       const a = G.world.actorFor(m.id);
+      G.world.attention = m.id;
       if (a) return { world: a.view.topPoint(new THREE.Vector3()), text: `Tap <b>${species(m.sp).name}</b>!` };
       return { el: HUD.nav.monsters, text: 'Open your <b>Monsters</b>.' };
     }),
@@ -391,6 +397,16 @@ export const Tutorial = {
     this._place(this._cur);
   },
 
+  _reveal(pt) {
+    const cam = G.world && G.world.camCtl;
+    if (!cam || G.mode !== 'island' || cam.flight || cam.pointers.size) return;
+    const now = performance.now();
+    // never fight the player: wait until they have left the camera alone
+    if (now - (cam.lastInput || 0) < 3500 || now - (this._revealAt || 0) < 2500) return;
+    this._revealAt = now;
+    cam.flyTo({ x: pt.x, z: pt.z }, Math.min(cam.goalDistance, 34), 0.9);
+  },
+
   _hide() {
     this.hand.style.opacity = '0';
     this.ring.style.display = 'none';
@@ -416,7 +432,11 @@ export const Tutorial = {
       y = rect.top + rect.height / 2;
     } else {
       const p = G.engine.project(g.world, G.world.camera);
-      if (!p.visible) return this._hide();
+      const W = window.innerWidth, H = window.innerHeight;
+      // the target drifted out of view (narrow phones, earlier camera moves):
+      // glide the camera over to it instead of pointing off-screen
+      if (!p.visible || p.x < W * 0.12 || p.x > W * 0.88 || p.y < H * 0.2 || p.y > H * 0.78) this._reveal(g.world);
+      if (!p.visible || p.x < 0 || p.x > W || p.y < 0 || p.y > H) return this._hide();
       x = p.x;
       y = p.y;
     }
@@ -465,6 +485,7 @@ export const Tutorial = {
     T.done = true;
     T.step = STEPS.length;
     this.active = false;
+    if (G.world) G.world.attention = null;
     this._hide();
     G.markDirty();
     G.bus.emit('tutorial:done', {});

@@ -24,6 +24,7 @@ module.exports = async function (page, api) {
   };
   let last = '';
   let idle = 0;
+  let same = 0;
   for (let i = 0; i < 320; i++) {
     const s = await step();
     if (!s) break;
@@ -33,6 +34,17 @@ module.exports = async function (page, api) {
       api.log(`step ${s} (${mode})`, info ? info.text : '-');
       await api.shot(`${s}`);
       last = s;
+      same = 0;
+    } else if (++same === 30) {
+      // stuck: report what the pointer targets and what is under it
+      const d = await api.eval((pt) => {
+        const desc = (e) => (e ? `${e.tagName}.${typeof e.className === 'string' ? e.className : e.getAttribute('class') || ''}`.slice(0, 60) : null);
+        const el = pt ? document.elementFromPoint(pt.x, pt.y) : null;
+        const G = window.__bh.G;
+        return { under: desc(el), pick: pt && G.world.pick ? G.world.pick(pt.x, pt.y) : null, stack: window.__bh.UI.stack.map((x) => x.key), cam: G.world.camCtl && [G.world.camCtl.target.x, G.world.camCtl.target.z, G.world.camCtl.distance].map((v) => +v.toFixed(1)) };
+      }, info);
+      api.log('STUCK', JSON.stringify(info), JSON.stringify(d));
+      await api.shot('stuck');
     }
     if (mode === 'battle') {
       // in battle: tap badge if choice pending, else wait
