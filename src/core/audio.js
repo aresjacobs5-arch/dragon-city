@@ -1,5 +1,8 @@
-// Procedural audio: every sound and music track is synthesized with WebAudio.
-// Copyright-safe, tiny, and adapts to settings instantly.
+// Game audio. Recorded sound effects, creature voices, music and jingles come
+// from freely licensed game-audio packs (see public/audio/CREDITS.txt) and are
+// listed in src/data/audio.json. A small WebAudio synthesizer covers any sound
+// that has not finished loading yet (or failed to load), so the game is never silent.
+import MANIFEST from '../data/audio.json';
 
 const NOTE = (n) => 440 * Math.pow(2, (n - 69) / 12);
 
@@ -16,6 +19,48 @@ class Synth {
     this.step = 0;
     this.nextTime = 0;
     this.lastSfx = {};
+    this.samples = new Map(); // url -> AudioBuffer (decoded) | null (failed)
+    this.raw = new Map(); // url -> Promise<ArrayBuffer>
+    this.lastVariant = {};
+    this.decks = [];
+    this.musicName = null;
+  }
+
+  // Starts downloading the sound effects and voices (decoding needs the audio
+  // context, which only exists after the first tap).
+  preload() {
+    const urls = [...Object.values(MANIFEST.sfx).flat(), ...Object.values(MANIFEST.voices).flat(), ...Object.values(MANIFEST.jingles)];
+    let i = 0;
+    const next = () => {
+      if (i >= urls.length) return;
+      const u = urls[i++];
+      this._fetch(u).finally(next);
+    };
+    for (let k = 0; k < 6; k++) next();
+  }
+  _fetch(u) {
+    if (!this.raw.has(u)) {
+      this.raw.set(u, fetch(`./${u}`).then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null));
+    }
+    const p = this.raw.get(u);
+    if (this.ctx) this._decode(u, p);
+    return p;
+  }
+  _decode(u, p) {
+    if (this.samples.has(u) || this._decoding?.has(u)) return;
+    (this._decoding = this._decoding || new Set()).add(u);
+    p.then((buf) => {
+      if (!buf) return this.samples.set(u, null);
+      const done = (b) => this.samples.set(u, b || null);
+      // Safari < 14.1 only supports the callback form
+      const r = this.ctx.decodeAudioData(buf.slice(0), done, () => done(null));
+      if (r && r.catch) r.catch(() => done(null));
+    });
+  }
+  _buffer(u) {
+    const b = this.samples.get(u);
+    if (b === undefined) this._fetch(u);
+    return b || null;
   }
 
   // Must be called from a user gesture.
@@ -47,9 +92,40 @@ class Synth {
     this.verbGain.connect(this.master);
     this.noiseBuf = this._noise();
     this.ready = true;
+    for (const [u, p] of this.raw) this._decode(u, p);
+    this._makeDecks();
     this.apply();
     this._sched = setInterval(() => this._schedule(), 60);
     if (this.pendingTrack) this.playMusic(this.pendingTrack);
+  }
+
+  // Two streaming players for music so scenes can crossfade. Each is started
+  // once inside the unlocking tap so mobile browsers let it play later on.
+  _makeDecks() {
+    const SILENT = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+    for (let i = 0; i < 2; i++) {
+      const el = document.createElement('audio');
+      el.preload = 'auto';
+      el.crossOrigin = 'anonymous';
+      el.src = SILENT;
+      const deck = { el, gain: this.ctx.createGain(), list: null, idx: 0, name: null };
+      try {
+        this.ctx.createMediaElementSource(el).connect(deck.gain);
+      } catch (e) {
+        deck.gain = null; // falls back to the element's own volume
+      }
+      if (deck.gain) {
+        deck.gain.gain.value = 0;
+        deck.gain.connect(this.music);
+      }
+      el.addEventListener('ended', () => this._nextTrack(deck));
+      el.addEventListener('error', () => {
+        if (deck.name && deck.name === this.musicName && el.src.indexOf('data:') !== 0) this._synthMusic(deck.name);
+      });
+      const p = el.play();
+      if (p && p.catch) p.catch(() => {});
+      this.decks.push(deck);
+    }
   }
 
   _impulse(sec) {
@@ -85,8 +161,12 @@ class Synth {
     const mute = this.muted || this.sdkMuted || this.paused;
     const t = this.ctx.currentTime;
     this.master.gain.setTargetAtTime(mute ? 0 : 1, t, 0.05);
-    this.music.gain.setTargetAtTime(this.musicVol * 0.38, t, 0.1);
+    this.music.gain.setTargetAtTime(this.musicVol * this._musicScale(), t, 0.1);
     this.sfx.gain.setTargetAtTime(this.sfxVol * 0.7, t, 0.05);
+  }
+  // recorded tracks are mastered quieter than the synth score
+  _musicScale() {
+    return this.track ? 0.38 : 0.62;
   }
   // Several things can pause audio at once (ads, hidden tab); track each reason.
   pause(v, reason = 'ad') {
@@ -95,6 +175,15 @@ class Synth {
     else this.pauseReasons.delete(reason);
     this.paused = this.pauseReasons.size > 0;
     this.apply();
+    for (const d of this.decks) {
+      if (!d.name) continue;
+      if (this.paused) d.el.pause();
+      else if (d.name === this.musicName) this._resume(d.el);
+    }
+  }
+  _resume(el) {
+    const p = el.play();
+    if (p && p.catch) p.catch(() => {});
   }
 
   // ------------------------------------------------------------ primitives
@@ -176,8 +265,67 @@ class Synth {
     const minGap = { coin: 0.05, click: 0.04, hit: 0.03, tick: 0.02 }[name] ?? 0.06;
     if (this.lastSfx[name] && now - this.lastSfx[name] < minGap) return;
     this.lastSfx[name] = now;
+    if (this._sample(name, now, opts)) return;
     const fn = SFX[name];
     if (fn) fn(this, now, opts);
+  }
+
+  // Plays a recorded variant of a sound; false if none is loaded yet.
+  _sample(name, t, opts = {}) {
+    if (name === 'roar' || name === 'squeak') return this.voice(opts.species || null, { stage: opts.stage ?? (name === 'squeak' ? 0 : 1), boss: !!opts.boss, pitch: opts.pitch });
+    const list = MANIFEST.sfx[name];
+    if (!list) return false;
+    const ready = list.map((u) => this._buffer(u)).filter(Boolean);
+    if (!ready.length) return false;
+    const seq = SEQ[name] || [0];
+    let k = this.lastVariant[name] ?? -1;
+    for (const off of seq) {
+      // never repeat the same variant twice in a row
+      k = ready.length > 1 ? (k + 1 + Math.floor(Math.random() * (ready.length - 1))) % ready.length : 0;
+      this._playBuffer(ready[k], t + off, { rate: (RATE[name] || 1) * (opts.rate || 1), jitter: 0.06, vol: opts.vol ?? 1 });
+    }
+    this.lastVariant[name] = k;
+    return true;
+  }
+  _playBuffer(buf, t, { rate = 1, jitter = 0, vol = 1, dest = null } = {}) {
+    const src = this.ctx.createBufferSource();
+    src.buffer = buf;
+    src.playbackRate.value = rate * (1 + (Math.random() - 0.5) * jitter);
+    const g = this.ctx.createGain();
+    g.gain.value = vol;
+    src.connect(g);
+    g.connect(dest || this.sfx);
+    src.start(t);
+    return src;
+  }
+
+  // A creature's voice. Every species keeps one voice for life: babies squeak,
+  // evolved forms use the grown-up voice, deeper at each evolution.
+  voice(def, { stage = 1, boss = false, pitch = null, vol = 1 } = {}) {
+    if (!this.ready || this.muted) return true;
+    const t = this.ctx.currentTime;
+    const key = def ? def.id : 'x';
+    let h = 0;
+    for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0;
+    const bigType = boss || (def && (['dragon', 'golem', 'whale', 'kraken', 'shell'].includes(def.model?.arch) || ['legendary', 'mythic', 'ancient'].includes(def.rarity)));
+    let pool, rate;
+    if (boss) (pool = 'big'), (rate = 0.78);
+    else if (stage === 0) (pool = 'cute'), (rate = 1.08);
+    else if (stage === 1) (pool = 'beast'), (rate = 1.08);
+    else (pool = bigType ? 'big' : 'beast'), (rate = 0.9);
+    if (!def && pitch) {
+      // old callers pass only a pitch: map it onto the voice pools
+      pool = pitch >= 120 ? 'cute' : pitch >= 90 ? 'beast' : 'big';
+      rate = pitch >= 120 ? pitch / 130 : pitch >= 90 ? pitch / 100 : Math.max(0.7, pitch / 80);
+    }
+    const list = MANIFEST.voices[pool] || [];
+    const buf = list.length ? this._buffer(list[h % list.length]) : null;
+    if (!buf) {
+      SFX[stage === 0 && !boss ? 'squeak' : 'roar'](this, t, { pitch: pitch || (boss ? 70 : stage === 0 ? 140 : 110) });
+      return true;
+    }
+    this._playBuffer(buf, t, { rate, jitter: 0.05, vol: 0.9 * vol });
+    return true;
   }
 
   // ------------------------------------------------------------ MUSIC
@@ -186,6 +334,55 @@ class Synth {
       this.pendingTrack = name;
       return;
     }
+    if (this.musicName === name) return;
+    this.musicName = name;
+    const list = MANIFEST.music[name];
+    if (!list || !this.decks.length) return this._synthMusic(name);
+    this.track = null; // recorded music replaces the synth score
+    this.apply();
+    const cur = this.decks.find((d) => d.name);
+    const next = this.decks.find((d) => d !== cur) || this.decks[0];
+    if (cur && cur !== next) this._fadeDeck(cur, 0, 0.7, true);
+    // continue each scene's playlist where it left off
+    this.playlistPos = this.playlistPos || {};
+    next.list = list;
+    next.idx = this.playlistPos[name] ?? 0;
+    next.name = name;
+    this._loadTrack(next);
+    this._fadeDeck(next, 1, 1.2);
+  }
+  _loadTrack(deck) {
+    const el = deck.el;
+    el.loop = deck.list.length === 1;
+    el.src = `./${deck.list[deck.idx % deck.list.length]}`;
+    if (!this.paused) this._resume(el);
+  }
+  _nextTrack(deck) {
+    if (!deck.name || deck.name !== this.musicName || !deck.list) return;
+    deck.idx = (deck.idx + 1) % deck.list.length;
+    this.playlistPos[deck.name] = deck.idx;
+    this._loadTrack(deck);
+  }
+  _fadeDeck(deck, to, sec, stopAfter = false) {
+    const t = this.ctx.currentTime;
+    if (deck.gain) {
+      deck.gain.gain.cancelScheduledValues(t);
+      deck.gain.gain.setValueAtTime(deck.gain.gain.value, t);
+      deck.gain.gain.linearRampToValueAtTime(to, t + sec);
+    } else deck.el.volume = to;
+    if (stopAfter) {
+      const name = deck.name;
+      deck.name = null;
+      setTimeout(() => {
+        if (!deck.name) {
+          deck.el.pause();
+          if (name) this.playlistPos[name] = deck.idx;
+        }
+      }, sec * 1000 + 60);
+    }
+  }
+  _synthMusic(name) {
+    for (const d of this.decks) if (d.name) this._fadeDeck(d, 0, 0.3, true);
     if (this.track && this.track.name === name) return;
     const tr = TRACKS[name];
     if (!tr) return;
@@ -201,16 +398,25 @@ class Synth {
   }
   stopMusic() {
     this.track = null;
+    this.musicName = null;
+    for (const d of this.decks) if (d.name) this._fadeDeck(d, 0, 0.5, true);
   }
   jingle(name) {
     if (!this.ready) return;
-    const fn = JINGLES[name];
-    if (!fn) return;
-    // duck music during the jingle
     const t = this.ctx.currentTime;
-    this.music.gain.setTargetAtTime(this.musicVol * 0.1, t, 0.05);
-    fn(this, t + 0.02);
-    setTimeout(() => this.apply(), 2200);
+    const url = MANIFEST.jingles[name];
+    const buf = url ? this._buffer(url) : null;
+    const fn = JINGLES[name] || (name === 'victoryBoss' ? JINGLES.victory : name === 'evolve' ? JINGLES.levelup : null);
+    if (!buf && !fn) return;
+    // duck the music while the fanfare plays
+    this.music.gain.setTargetAtTime(this.musicVol * this._musicScale() * 0.12, t, 0.08);
+    let dur = 2.2;
+    if (buf) {
+      this._playBuffer(buf, t + 0.02, { vol: 1.1 });
+      dur = buf.duration + 0.2;
+    } else fn(this, t + 0.02);
+    clearTimeout(this._duckT);
+    this._duckT = setTimeout(() => this.apply(), dur * 1000);
   }
 
   _schedule() {
@@ -226,6 +432,10 @@ class Synth {
 }
 
 // ---------------------------------------------------------------------------
+// Recorded sounds: a few are played as short sequences, some at a fixed pitch.
+const SEQ = { build: [0, 0.15, 0.3] };
+const RATE = { thunder: 0.55 };
+
 const SFX = {
   click: (s, t) => s.tone({ freq: 880, slide: 620, type: 'sine', d: 0.05, vol: 0.18, t }),
   tab: (s, t) => s.tone({ freq: 660, slide: 780, type: 'triangle', d: 0.05, vol: 0.14, t }),

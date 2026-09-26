@@ -1,0 +1,121 @@
+Beasthaven: music and sound credits
+
+Every sound and music file in this folder comes from a freely licensed game-audio pack.
+CC0 works need no attribution; CC BY works are credited here and in the game settings.
+
+bart ("Ice spells") (CC0 1.0) https://opengameart.org/content/ice-spells
+  sfx/ice-1.mp3  <-  Ice.wav
+
+josepharaoh99 (CC0 1.0) https://freesound.org/people/Jofae/
+  sfx/hit-3.mp3  <-  bite-cartoon-style.mp3
+  voice/big-3.mp3  <-  creature-roar.mp3
+
+Kenney (kenney.nl) (CC0 1.0) https://kenney.nl
+  sfx/boom-1.mp3  <-  explosion1.wav
+  sfx/boom-2.mp3  <-  explosion2.wav
+  sfx/buff-1.mp3  <-  upgrade1.wav
+  sfx/charge-2.mp3  <-  upgrade3.wav
+  sfx/coin-1.mp3  <-  coin1.wav
+  sfx/coin-2.mp3  <-  coin2.wav
+  sfx/coin-3.mp3  <-  coin3.wav
+  sfx/rock-2.mp3  <-  rockHit2.wav
+  sfx/thunder-1.mp3  <-  explosion1.wav
+  sfx/zap-1.mp3  <-  laser4.wav
+  sfx/zap-2.mp3  <-  phaseJump1.wav
+
+rubberduck (80 CC0 creature / RPG / sci-fi SFX packs) (CC0 1.0) https://opengameart.org/users/rubberduck
+  sfx/eat-1.mp3  <-  eat_01.ogg
+  sfx/eat-2.mp3  <-  eat_03.ogg
+  sfx/faint-1.mp3  <-  die_04.ogg
+  sfx/fire-1.mp3  <-  spell_fire_06.ogg
+  sfx/fire-2.mp3  <-  spell_fire_07.ogg
+  sfx/magic-1.mp3  <-  teleport_02.ogg
+  sfx/rock-1.mp3  <-  Stones_04.ogg
+  voice/beast-1.mp3  <-  monster_05.ogg
+  voice/beast-2.mp3  <-  monster_06.ogg
+  voice/beast-3.mp3  <-  monster_16.ogg
+  voice/beast-4.mp3  <-  monster_17.ogg
+  voice/beast-5.mp3  <-  monster_19.ogg
+  voice/beast-6.mp3  <-  grunt_02.ogg
+  voice/beast-7.mp3  <-  troll_01.ogg
+  voice/beast-8.mp3  <-  troll_02.ogg
+  voice/big-1.mp3  <-  roar_03.ogg
+  voice/big-2.mp3  <-  roar_05.ogg
+  voice/cute-1.mp3  <-  cute_01.ogg
+  voice/cute-2.mp3  <-  cute_02.ogg
+  voice/cute-3.mp3  <-  cute_03.ogg
+  voice/cute-4.mp3  <-  cute_04.ogg
+  voice/cute-5.mp3  <-  burble_02.ogg
+  voice/cute-6.mp3  <-  bug_03.ogg
+  voice/cute-7.mp3  <-  bug_05.ogg
+  voice/cute-8.mp3  <-  weird_09.ogg
+
+Pixel-boy / Sparklin Labs (Superpowers asset packs) (CC0 1.0) https://github.com/sparklinlabs/superpowers-asset-packs
+  music/battle-2.mp3  <-  theme-13.ogg
+  music/island-2.mp3  <-  theme-1.ogg
+  music/map-2.mp3  <-  theme-3.ogg
+  sfx/attack-1.mp3  <-  Woosh-1.wav
+  sfx/attack-2.mp3  <-  Woosh-2.wav
+  sfx/build-1.mp3  <-  wood-1.wav
+  sfx/build-2.mp3  <-  wood-2.wav
+  sfx/build-3.mp3  <-  wood-3.wav
+  sfx/hit-1.mp3  <-  hit-1.wav
+  sfx/hit-2.mp3  <-  hit-2.wav
+  sfx/shield-1.mp3  <-  Steel_Clang.wav
+  sfx/swoosh-1.mp3  <-  Woosh-2.wav
+  sfx/whoosh-1.mp3  <-  Woosh-2.wav
+  sfx/whoosh-2.mp3  <-  Woosh-1.wav
+  voice/beast-10.mp3  <-  monster-2.wav
+  voice/beast-9.mp3  <-  monster-1.wav
+  voice/big-5.mp3  <-  dinosaur-1.wav
+  voice/big-6.mp3  <-  dinosaur-3.wav
+
+uisfx by Romain Simon (CC0 1.0) https://github.com/romainsimon/uisfx
+  sfx/back-1.mp3  <-  back.mp3
+  sfx/built-1.mp3  <-  complete.mp3
+  sfx/burst-1.mp3  <-  bonus.mp3
+  sfx/charge-1.mp3  <-  start.mp3
+  sfx/click-1.mp3  <-  press.mp3
+  sfx/collect-1.mp3  <-  receive.mp3
+  sfx/crack-1.mp3  <-  snap.mp3
+  sfx/crit-1.mp3  <-  drop.mp3
+  sfx/debuff-1.mp3  <-  warning.mp3
+  sfx/error-1.mp3  <-  error.mp3
+  sfx/food-1.mp3  <-  receive.mp3
+  sfx/heal-1.mp3  <-  success.mp3
+  sfx/heart-1.mp3  <-  reaction.mp3
+  sfx/land-1.mp3  <-  drop.mp3
+  sfx/place-1.mp3  <-  drop.mp3
+  sfx/pop-1.mp3  <-  open.mp3
+  sfx/quest-1.mp3  <-  checkpoint.mp3
+  sfx/reward-1.mp3  <-  reward.mp3
+  sfx/sparkle-1.mp3  <-  bonus.mp3
+  sfx/tab-1.mp3  <-  select.mp3
+  sfx/tick-1.mp3  <-  snap.mp3
+  sfx/unlock-1.mp3  <-  unlock.mp3
+
+Bart K ("Spell 4 - Fire", "6 Monstrous Growls") (CC BY 3.0) https://opengameart.org/users/bart
+  sfx/fire-3.mp3  <-  Foom_0.wav
+  voice/big-4.mp3  <-  Growl1.wav
+
+FreqMan ("splash-1") (CC BY 4.0) https://freesound.org/people/FreqMan/sounds/25819/
+  sfx/water-1.mp3  <-  splash-1.wav
+
+Migfus20 (epic orchestra music, looped by the Bevy project) (CC BY 4.0) https://freesound.org/people/Migfus20/sounds/560449/
+  music/boss-1.mp3  <-  Epic orchestra music.ogg
+
+Spring ("Boss Introduction") (CC BY 3.0) https://opengameart.org/content/boss-introduction
+  music/boss-2.mp3  <-  boss  introduction.mp3
+
+Yubatake ("JRPG Collection" and "JRPG Collection 2") (CC BY 3.0) https://opengameart.org/content/jrpg-collection
+  jingles/defeat.mp3  <-  JRPG_gameOver.ogg
+  jingles/evolve.mp3  <-  JRPG_winBattleBig.ogg
+  jingles/hatch.mp3  <-  JRPG_joinParty.ogg
+  jingles/island.mp3  <-  JRPG_discovery.ogg
+  jingles/levelup.mp3  <-  JRPG_levelUp.ogg
+  jingles/victory.mp3  <-  JRPG_winBattle.ogg
+  jingles/victoryBoss.mp3  <-  JRPG_winBattleBoss.ogg
+  jingles/welcome.mp3  <-  JRPG_goodMorning.ogg
+  music/battle-1.mp3  <-  JRPG_battle_loop.ogg
+  music/island-1.mp3  <-  JRPG_town_loop.ogg
+  music/map-1.mp3  <-  JRPG_fields_loop.ogg

@@ -1719,3 +1719,16 @@
 .name-input:focus {
   border-color: var(--blue-d);
 }
+
+/* settings credits */
+details.credits {
+  text-align: center;
+}
+details.credits summary {
+  cursor: pointer;
+}
+details.credits p {
+  margin: 0.35rem 0 0;
+  line-height: 1.35;
+  text-align: center;
+}

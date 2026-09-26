@@ -9,6 +9,7 @@ import * as HT from './systems/hatchery.js';
 import * as BR from './systems/breeding.js';
 import * as CP from './systems/campaign.js';
 import { saveGame, loadGame } from './core/save.js';
+import { Audio } from './core/audio.js';
 
 // Entry point: drives the loading bar from real boot stages, then fades in.
 const loader = document.getElementById('loader');
@@ -56,7 +57,7 @@ Game.boot(progress)
       setTimeout(() => loader.remove(), 700);
       window.__ready = true;
     }, 250);
-    if (new URLSearchParams(location.search).has('dev')) window.__bh = { G, Game, Campaign, Tutorial, UI, B, M, HT, BR, CP, saveGame, loadGame };
+    if (new URLSearchParams(location.search).has('dev')) window.__bh = { G, Game, Campaign, Tutorial, UI, B, M, HT, BR, CP, Audio, saveGame, loadGame };
   })
   .catch((e) => {
     console.error(e);

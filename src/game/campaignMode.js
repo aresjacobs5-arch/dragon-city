@@ -646,7 +646,7 @@ export const Campaign = {
     if (boss) {
       await ar.wait(0.5);
       await ar.shot('ult', { uid: boss.uid, dur: 0.6 });
-      Audio.play('roar', { pitch: 70 });
+      Audio.voice(boss.def, { boss: true });
       ar.unit(boss.uid).view.animator.play('roar');
       ar.shake(0.6);
       this._banner(boss.name.toUpperCase(), 'boss');
@@ -1095,6 +1095,8 @@ export const Campaign = {
     if (use.ult) {
       this._banner(ab.name.toUpperCase() + '!', 'ult');
       Audio.play('charge');
+      // the monster cries out as it unleashes its ultimate
+      Audio.voice(u.def, { stage: u.boss ? 0 : stageForLevel(u.lvl), boss: !!u.boss, vol: 0.8 });
     }
     await this.arena.perform(u.uid, ab, use.targets, {
       impacts: chunks.length,
@@ -1216,7 +1218,8 @@ export const Campaign = {
           uv.view.animator.play('roar');
           uv.view.flash('#ff6a5a', 1);
         }
-        Audio.play('roar', { pitch: 80 });
+        const bu = bs.battle.units.find((x) => x.uid === e.u);
+        Audio.voice(bu ? bu.def : null, { boss: true, pitch: 80 });
         if (f) this._updateFrame(e.u);
         break;
       }
@@ -1234,7 +1237,7 @@ export const Campaign = {
     await this._flushPending();
     if (win) {
       ar.celebrate(0);
-      Audio.jingle('victory');
+      Audio.jingle(bs.bossFight ? 'victoryBoss' : 'victory');
       const lead = bs.battle.alive(0)[0];
       ar.shot('victory', { uid: lead ? lead.uid : null, dur: 1.0 });
     } else {

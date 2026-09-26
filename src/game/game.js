@@ -109,6 +109,7 @@ export const Game = {
     world.camCtl.goalDistance = fresh ? 40 : 42;
     progress(1, 'Ready');
     SDK.loadingStop();
+    Audio.preload();
     await wait(150);
     // first user gesture unlocks audio
     const unlock = () => {
@@ -231,11 +232,11 @@ export const Game = {
       sfx: (n) => Audio.play(n),
       onFlash: () => {
         Audio.play('burst');
-        Audio.jingle('levelup');
+        Audio.jingle('evolve');
         SDK.happytime();
       },
       onReveal: () => {
-        Audio.play('roar', { pitch: 120 });
+        Audio.voice(def, { stage: toStage });
         top.innerHTML = '';
         top.append(h('div.big-title.gold', { style: { fontSize: '3rem' } }, 'EVOLVED!'), h('div.nm.display.ol', null, M.monsterName(m)), h('div.rar.rar-chip', { style: { background: RARITIES[def.rarity].color } }, toStage === 2 ? 'Final form' : 'Grown up'));
         bottom.append(h('button.btn.lg.green', { onclick: () => finish() }, icon('check'), 'Awesome!'), h('div.small.ol-s', null, 'Evolved monsters are stronger and earn more gold.'));
@@ -365,12 +366,12 @@ export const Game = {
       }
     } else if (hit.kind === 'monster') {
       const a = world.actorFor(hit.id);
+      const m = M.byId(hit.id);
       if (a) {
         a.view.animator.play('happy');
         world.particles.emit('heart', a.view.topPoint(new THREE.Vector3()), { count: 3 });
-        Audio.play('squeak');
+        if (m) Audio.voice(M.species(m.sp), { stage: M.stageOf(m) });
       }
-      const m = M.byId(hit.id);
       if (m) {
         Sheets.closeSheet();
         openMonsterDetail(m, this.actions);
@@ -1149,7 +1150,7 @@ Game.revealMonster = async function (m) {
       if (R.idx >= 3) SDK.happytime();
     },
     onReveal: () => {
-      Audio.play('roar', { pitch: 140 - R.idx * 10 });
+      Audio.voice(def, { stage: stageForLevel(m.lvl) });
       top.innerHTML = '';
       bottom.innerHTML = '';
       const isNew = G.state.stats[`seen_${m.sp}`] !== 1;

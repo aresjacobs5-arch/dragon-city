@@ -277,7 +277,11 @@ export function openSettings(A) {
       h('div.set-row.well', null, icon('mute'), h('span.lbl', null, 'Mute all'), h('div.grow'), muteT),
       h('div.set-row.well', null, icon('info'), h('div.grow.small', null, 'Progress saves automatically. ', h('span.muted', null, `Tamer since ${new Date(G.state.created).toLocaleDateString()}`))),
       h('div.dlg-actions', null, h('button.btn.sm.red', { onclick: () => A.resetProgress() }, 'Reset progress')),
-      h('div.tiny.muted', { style: { textAlign: 'center' } }, 'Beasthaven · Fonts: Lilita One, Titan One, Nunito (SIL OFL)'),
+      h('details.credits', null, h('summary.tiny.muted', null, 'Credits'),
+        h('div.tiny.muted', null,
+          h('p', null, 'Music: "JRPG Collection" 1 & 2 by Yubatake (CC BY 3.0) · "Boss Introduction" by Spring (CC BY 3.0) · Epic orchestra loop by Migfus20 (CC BY 4.0) · Superpowers asset packs by Pixel-boy (CC0).'),
+          h('p', null, 'Sounds: Kenney.nl, rubberduck, uisfx, Superpowers asset packs, josepharaoh99 and bart (CC0) · Bart K (CC BY 3.0) · FreqMan (CC BY 4.0).'),
+          h('p', null, 'Fonts: Lilita One, Titan One, Nunito (SIL OFL).'))),
     ],
   });
   UI.open(scr);
