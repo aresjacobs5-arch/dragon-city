@@ -791,6 +791,13 @@
     flex-wrap: wrap;
     justify-content: center;
   }
+  /* narrow screens: turn order sits below the quit/speed/auto buttons */
+  .bhud .order {
+    top: 4.4rem;
+  }
+  .boss-bar {
+    top: 9.2rem;
+  }
 }
 
 .bhud .order:empty {

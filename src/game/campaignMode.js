@@ -588,7 +588,10 @@ export const Campaign = {
       G.markDirty();
     }
     this._transit = true;
-    if (!this.arena) this.arena = new Arena(G.engine);
+    if (!this.arena) {
+      this.arena = new Arena(G.engine);
+      this.arena.onSfx = (n) => Audio.play(n);
+    }
     const bossFight = cfg.enemies.some((e) => e.boss);
     const battle = new Battle({
       allies: cfg.team.map((m) => ({ ...m })),
@@ -872,12 +875,21 @@ export const Campaign = {
   _renderOrder(cur) {
     const bs = this.bs;
     const order = this.bhud.order;
-    order.innerHTML = '';
-    const list = [cur, ...bs.battle.predictOrder(5)];
-    list.slice(0, 6).forEach((u, i) => {
+    const list = [cur, ...bs.battle.predictOrder(5)].slice(0, 6);
+    // build off-screen and swap once every portrait has decoded (no blank flicker)
+    const token = (this._orderToken = (this._orderToken || 0) + 1);
+    const els = list.map((u, i) => {
       const img = h('img', { alt: '' });
-      this.A.portrait(u.sp, u.boss ? 0 : stageForLevel(u.lvl)).then((x) => x && (img.src = x));
-      order.appendChild(h(`div.o.${u.side === 0 ? 'ally' : 'enemy'}${i === 0 ? '.first' : ''}`, null, img));
+      const ready = this.A.portrait(u.sp, u.boss ? 0 : stageForLevel(u.lvl)).then((x) => {
+        if (!x) return;
+        img.src = x;
+        return img.decode ? img.decode().catch(() => {}) : null;
+      });
+      return { el: h(`div.o.${u.side === 0 ? 'ally' : 'enemy'}${i === 0 ? '.first' : ''}`, null, img), ready };
+    });
+    Promise.all(els.map((e) => e.ready)).then(() => {
+      if (token !== this._orderToken || !this.bhud || this.bhud.order !== order) return;
+      order.replaceChildren(...els.map((e) => e.el));
     });
   },
 

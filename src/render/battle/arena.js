@@ -12,6 +12,21 @@ import { ELEMENTS } from '../../data/elements.js';
 import { clamp, ease } from '../../core/math.js';
 import * as Geo from '../geom.js';
 
+// Ambient weather per environment: what drifts through the air of each world.
+// kind: fall (from above), rise (from the ground), float (hovering motes)
+const WEATHER = {
+  verdant: { type: 'leaf', rate: 0.9, kind: 'fall', life: 3.2 },
+  volcanic: { type: 'ember', rate: 9, kind: 'rise', life: 2.6 },
+  frozen: { type: 'snow', rate: 14, kind: 'fall', life: 4.5 },
+  storm: { type: 'bolt', rate: 0.6, kind: 'float', life: 1.5, lightning: true },
+  shadow: { type: 'magic', rate: 3, kind: 'float', life: 2.4, color: '#b67cff' },
+  marsh: { type: 'sparkle', rate: 3.5, kind: 'float', life: 2.4, color: '#d8ff7a' },
+  arcane: { type: 'magic', rate: 4, kind: 'float', life: 2.4 },
+  celestial: { type: 'sparkle', rate: 5, kind: 'float', life: 2.6 },
+  coral: { type: 'bubble', rate: 5, kind: 'rise', life: 3 },
+  ancient: { type: 'dust', rate: 1.2, kind: 'float', life: 3 },
+};
+
 // Battle stage: a themed floating arena, the six combatants and all ability
 // effects. Every timing runs on "arena time", so 2x / 4x speed scales the
 // whole presentation (animations, projectiles, particles and waits).
@@ -175,8 +190,8 @@ export class Arena {
     this.scene.add(env.group);
     const T = env.T;
     this.scene.fog = new THREE.Fog(T.fog, 60, 260);
-    this.baseHemi = 1.1;
-    this.baseSun = T.lava ? 2.6 : 3.0;
+    this.baseHemi = 1.1 * (T.light ?? 1);
+    this.baseSun = (T.lava ? 2.6 : 3.0) * (T.light ?? 1);
     this.hemi.color.set(T.skyHorizon).lerp(new THREE.Color('#ffffff'), 0.5);
   }
 
@@ -243,9 +258,9 @@ export class Arena {
     // sky, cloud sea, drifting clouds
     const sky = createSky({ top: T.skyTop, horizon: T.skyHorizon, sun: T.sun, sunDir: new THREE.Vector3(-0.4, 0.3, -0.9) });
     group.add(sky);
-    const sea = createCloudSea({ y: -40, fog: T.fog, color: T.lava ? '#ffe2c8' : '#ffffff', shade: T.lava ? '#d8a08a' : '#b9cdea' });
+    const sea = createCloudSea({ y: -40, fog: T.fog, color: T.cloudSea || (T.lava ? '#ffe2c8' : '#ffffff'), shade: T.cloudShade || (T.lava ? '#d8a08a' : '#b9cdea') });
     group.add(sea);
-    const clouds = new CloudLayer({ seed: seed + 5, count: 18, area: 90, yRange: [-26, -4], avoidRadius: 18 });
+    const clouds = new CloudLayer({ seed: seed + 5, count: 18, area: 90, yRange: [-26, -4], avoidRadius: 18, ...(T.cloudTop ? { top: T.cloudTop, bottom: T.cloudBottom } : {}) });
     group.add(clouds.group);
     // distant islets
     for (let i = 0; i < 5; i++) {
@@ -1052,9 +1067,10 @@ export class Arena {
       r.scale.setScalar(Math.max(0.8, u.radius * 1.25) * (1 + Math.sin(this.time * 7) * 0.08));
       r.visible = u.alive;
     }
+    this._weather(dt);
     // mood lighting
     this.mood += (this.moodGoal - this.mood) * (1 - Math.exp(-8 * dt));
-    this.hemi.intensity = (this.baseHemi || 1.1) * (1 - this.mood * 0.55);
+    this.hemi.intensity = (this.baseHemi || 1.1) * (1 - this.mood * 0.55) + (this.flashK || 0) * 1.4;
     this.sun.intensity = (this.baseSun || 3) * (1 - this.mood * 0.6);
     // camera
     if (this.camTween) {
@@ -1091,6 +1107,76 @@ export class Arena {
     }
     this.particles.setScale(this.engine.height * this.engine.renderer.getPixelRatio(), this.camera.fov);
     this.particles.update(sdt);
+  }
+
+  // Ambient particles for the current environment, plus distant lightning
+  // strikes in stormy worlds. Uses real time so weather is calm at 4x speed.
+  _weather(dt) {
+    const W = WEATHER[this.themeName];
+    this.flashK = Math.max(0, (this.flashK || 0) - dt * 5);
+    if (this.bolt) {
+      this.bolt.material.opacity = Math.max(0, this.bolt.material.opacity - dt * 3.2);
+      if (this.bolt.material.opacity <= 0) this.bolt.visible = false;
+    }
+    if (!W) return;
+    this._wAcc = (this._wAcc || 0) + dt * W.rate;
+    while (this._wAcc >= 1) {
+      this._wAcc -= 1;
+      const x = (Math.random() - 0.5) * 22, z = W.kind === 'fall' ? -9 + Math.random() * 12 : (Math.random() - 0.5) * 14 - 1;
+      const y = W.kind === 'fall' ? 5 + Math.random() * 4 : W.kind === 'rise' ? Math.random() * 0.6 : 0.6 + Math.random() * 3;
+      if (W.type === 'bolt') continue;
+      this.particles.emit(W.type, _v.set(x, y, z), { count: 1, spread: 0.2, speed: 0.25, up: W.kind === 'fall' ? 0 : 0.3, life: W.life, color: W.color || null });
+    }
+    if (W.lightning) {
+      this._nextBolt = (this._nextBolt ?? 2 + Math.random() * 3) - dt;
+      if (this._nextBolt <= 0) {
+        this._nextBolt = 5 + Math.random() * 7;
+        this._strike();
+      }
+    }
+  }
+
+  _strike() {
+    if (!this.bolt) {
+      const m = new THREE.MeshBasicMaterial({ color: '#eaf4ff', transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, fog: false, side: THREE.DoubleSide });
+      this.bolt = new THREE.Mesh(new THREE.BufferGeometry(), m);
+      this.bolt.renderOrder = -1;
+      this.scene.add(this.bolt);
+    }
+    // jagged ribbon falling from the top of the view into the cloud sea, with
+    // one branch; placed in the far background of whatever the camera frames
+    const cam = this.camera;
+    const side = Math.random() < 0.5 ? -1 : 1;
+    const dir = _v.set(side * (0.35 + Math.random() * 0.45), 1.05, 0.5).unproject(cam).sub(cam.position).normalize();
+    const top = _v2.copy(cam.position).addScaledVector(dir, 130);
+    const pts = [];
+    let x = 0;
+    for (let i = 0; i <= 12; i++) {
+      pts.push([x, -i * 4.4]);
+      x += (Math.random() - 0.5) * 5.5;
+    }
+    const pos = [];
+    const strip = (list, w0) => {
+      for (let i = 0; i < list.length - 1; i++) {
+        const [ax, ay] = list[i], [bx, by] = list[i + 1];
+        const wa = w0 * (1 - i / list.length), wb = w0 * (1 - (i + 1) / list.length);
+        pos.push(ax - wa, ay, 0, ax + wa, ay, 0, bx + wb, by, 0, ax - wa, ay, 0, bx + wb, by, 0, bx - wb, by, 0);
+      }
+    };
+    strip(pts, 0.8);
+    const b0 = pts[3];
+    const branch = [b0];
+    for (let i = 1; i < 5; i++) branch.push([b0[0] + i * (2 + Math.random() * 2) * side, b0[1] - i * 3.6]);
+    strip(branch, 0.4);
+    const g = this.bolt.geometry;
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    g.computeBoundingSphere();
+    this.bolt.position.copy(top);
+    this.bolt.rotation.set(0, Math.atan2(cam.position.x - top.x, cam.position.z - top.z), 0);
+    this.bolt.material.opacity = 1;
+    this.bolt.visible = true;
+    this.flashK = 1;
+    if (this.onSfx) this.onSfx('thunder');
   }
 
   resize(w, h) {

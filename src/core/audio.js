@@ -153,6 +153,7 @@ class Synth {
     const tt = t ?? ctx.currentTime;
     const src = ctx.createBufferSource();
     src.buffer = this.noiseBuf;
+    src.loop = true; // long rumbles outlast the 1s noise buffer
     const flt = ctx.createBiquadFilter();
     flt.type = type;
     flt.frequency.setValueAtTime(f, tt);
@@ -324,6 +325,12 @@ const SFX = {
   },
   sparkle: (s, t) => [0, 0.04, 0.08].forEach((o) => s.tone({ freq: 2000 + Math.random() * 2000, type: 'sine', d: 0.15, vol: 0.05, t: t + o, verb: 0.5 })),
   swoosh: (s, t) => s.noise({ t, d: 0.35, vol: 0.12, f: 2000, f2: 300, q: 1, a: 0.08 }),
+  // distant thunder: a soft crackle and a long low rumble
+  thunder: (s, t) => {
+    s.noise({ t, d: 0.25, vol: 0.05, f: 2600, type: 'highpass' });
+    s.noise({ t: t + 0.12, d: 1.8, vol: 0.2, f: 160, type: 'lowpass', a: 0.15 });
+    s.tone({ freq: 55, slide: 38, type: 'sine', d: 1.4, vol: 0.18, t: t + 0.15, a: 0.2 });
+  },
 };
 
 // ---------------------------------------------------------------------------
